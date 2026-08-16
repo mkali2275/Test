@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar Power Calculator - preview</title>
+<style>
+body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #eef2f5; }
+@media (prefers-color-scheme: dark) { body { background: #0b1116; } }
+.preview-note { max-width: 1000px; margin: 0 auto 24px; padding: 10px 14px; border-radius: 8px; background: #fff7ed; color: #7c2d12; font-size: 14px; }
+@media (prefers-color-scheme: dark) { .preview-note { background: #2a1a0d; color: #fdba74; } }
+.spc { padding: 28px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+/**
+ * Solar Power Calculator - front-end styles.
+ *
+ * Everything is scoped under .spc and uses custom properties, so a theme can
+ * restyle the calculator by redefining the variables rather than fighting
+ * selectors. Colours are deliberately neutral greens/slates that sit well on
+ * both light and dark themes.
+ */
+
+.spc {
+	--spc-accent: #0f766e;
+	--spc-accent-soft: #ccfbf1;
+	--spc-accent-ink: #115e59;
+	--spc-sun: #f59e0b;
+	--spc-ink: #1f2933;
+	--spc-muted: #616e7c;
+	--spc-line: #e1e7ec;
+	--spc-bg: #ffffff;
+	--spc-panel: #f7f9fa;
+	--spc-radius: 12px;
+	--spc-gap: 16px;
+
+	box-sizing: border-box;
+	max-width: 1000px;
+	margin: 0 auto;
+	color: var(--spc-ink);
+	background: var(--spc-bg);
+	font-size: 16px;
+	line-height: 1.5;
+}
+
+.spc *,
+.spc *::before,
+.spc *::after {
+	box-sizing: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+	.spc:not([data-theme="light"]) {
+		--spc-accent: #2dd4bf;
+		--spc-accent-soft: #134e4a;
+		--spc-accent-ink: #99f6e4;
+		--spc-ink: #e8eef3;
+		--spc-muted: #9aa8b5;
+		--spc-line: #2c3742;
+		--spc-bg: #131a21;
+		--spc-panel: #1a232c;
+	}
+}
+
+/* ------------------------------------------------------------- header */
+
+.spc-header {
+	text-align: center;
+	margin-bottom: 28px;
+}
+
+.spc-title {
+	margin: 0 0 6px;
+	font-size: 1.75rem;
+	line-height: 1.2;
+	color: var(--spc-ink);
+}
+
+.spc-subtitle {
+	margin: 0;
+	color: var(--spc-muted);
+}
+
+.spc-noscript {
+	padding: 16px;
+	border: 1px solid var(--spc-line);
+	border-radius: var(--spc-radius);
+	background: var(--spc-panel);
+}
+
+/* -------------------------------------------------------------- steps */
+
+.spc-step {
+	margin-bottom: 32px;
+}
+
+.spc-step-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 14px;
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--spc-ink);
+}
+
+.spc-step-num {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: var(--spc-accent);
+	color: #fff;
+	font-size: 0.85rem;
+	font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+	.spc:not([data-theme="light"]) .spc-step-num {
+		color: #06231f;
+	}
+}
+
+/* ----------------------------------------------------------- profiles */
+
+.spc-profiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: var(--spc-gap);
+}
+
+.spc-profile {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	padding: 16px;
+	border: 2px solid var(--spc-line);
+	border-radius: var(--spc-radius);
+	background: var(--spc-panel);
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.spc-profile:hover {
+	border-color: var(--spc-accent);
+	transform: translateY(-1px);
+}
+
+.spc-profile.is-active {
+	border-color: var(--spc-accent);
+	background: var(--spc-accent-soft);
+}
+
+.spc-profile-icon {
+	width: 28px;
+	height: 28px;
+	background: var(--spc-accent);
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+}
+
+.spc-profile-icon[data-icon="home"] {
+	-webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>');
+	mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>');
+}
+
+.spc-profile-icon[data-icon="office"] {
+	-webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="18" rx="1"/><path d="M15 9h6v12h-6"/><path d="M6.5 7h2M6.5 11h2M6.5 15h2M11 7h1M11 11h1M11 15h1M18 13h1M18 17h1"/></svg>');
+	mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="18" rx="1"/><path d="M15 9h6v12h-6"/><path d="M6.5 7h2M6.5 11h2M6.5 15h2M11 7h1M11 11h1M11 15h1M18 13h1M18 17h1"/></svg>');
+}
+
+.spc-profile-icon[data-icon="van"] {
+	-webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16V7a1 1 0 0 1 1-1h11l5 5v5"/><path d="M2 16h2m4 0h8m4 0h2"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="18" cy="17.5" r="1.8"/></svg>');
+	mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16V7a1 1 0 0 1 1-1h11l5 5v5"/><path d="M2 16h2m4 0h8m4 0h2"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="18" cy="17.5" r="1.8"/></svg>');
+}
+
+.spc-profile-label {
+	font-weight: 600;
+}
+
+.spc-profile-blurb {
+	font-size: 0.85rem;
+	color: var(--spc-muted);
+}
+
+/* ------------------------------------------------------------ picker */
+
+.spc-picker {
+	padding: var(--spc-gap);
+	border: 1px solid var(--spc-line);
+	border-radius: var(--spc-radius);
+	background: var(--spc-panel);
+	margin-bottom: var(--spc-gap);
+}
+
+.spc-search {
+	display: block;
+	position: relative;
+	margin-bottom: 14px;
+}
+
+.spc-search-input {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--spc-line);
+	border-radius: 8px;
+	background: var(--spc-bg);
+	color: var(--spc-ink);
+	font: inherit;
+}
+
+.spc-library {
+	max-height: 340px;
+	overflow-y: auto;
+}
+
+.spc-group + .spc-group {
+	margin-top: 14px;
+}
+
+.spc-group-title {
+	margin: 0 0 8px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--spc-muted);
+}
+
+.spc-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.spc-chip {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 7px 12px;
+	border: 1px solid var(--spc-line);
+	border-radius: 999px;
+	background: var(--spc-bg);
+	color: inherit;
+	font: inherit;
+	font-size: 0.9rem;
+	cursor: pointer;
+	transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.spc-chip:hover {
+	border-color: var(--spc-accent);
+}
+
+.spc-chip.is-chosen {
+	border-color: var(--spc-accent);
+	background: var(--spc-accent-soft);
+	color: var(--spc-accent-ink);
+}
+
+.spc-chip.is-chosen .spc-chip-name::before {
+	content: "\2713\00a0";
+	font-weight: 700;
+}
+
+.spc-chip-watts {
+	font-size: 0.72rem;
+	color: var(--spc-muted);
+}
+
+.spc-chip.is-chosen .spc-chip-watts {
+	color: var(--spc-accent-ink);
+	opacity: 0.85;
+}
+
+.spc-no-match {
+	margin: 0;
+	color: var(--spc-muted);
+}
+
+/* --------------------------------------------------------- load list */
+
+.spc-selected-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.spc-selected-head h4 {
+	margin: 0;
+	font-size: 1rem;
+}
+
+.spc-empty {
+	margin: 0 0 14px;
+	color: var(--spc-muted);
+	font-size: 0.92rem;
+}
+
+.spc-table-wrap {
+	overflow-x: auto;
+	/* Positioned so the visually-hidden labels inside the table resolve their
+	   containing block here and get clipped with it. Without this they anchor
+	   to the viewport and push the whole page sideways on narrow screens. */
+	position: relative;
+}
+
+.spc-table {
+	width: 100%;
+	min-width: 520px;
+	border-collapse: collapse;
+	margin-bottom: 14px;
+	background: none;
+}
+
+.spc-table th,
+.spc-table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--spc-line);
+	text-align: left;
+	vertical-align: middle;
+}
+
+.spc-table thead th {
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--spc-muted);
+}
+
+.spc-table tfoot th,
+.spc-table tfoot td {
+	border-bottom: none;
+	border-top: 2px solid var(--spc-line);
+	font-weight: 700;
+}
+
+.spc-col-num {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.spc-table td.spc-col-num input {
+	width: 82px;
+	padding: 6px 8px;
+	border: 1px solid var(--spc-line);
+	border-radius: 6px;
+	background: var(--spc-bg);
+	color: var(--spc-ink);
+	font: inherit;
+	font-size: 0.9rem;
+	text-align: right;
+}
+
+.spc-col-action {
+	width: 40px;
+	text-align: right;
+}
+
+.spc-item-name {
+	font-weight: 500;
+}
+
+.spc-tag {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: var(--spc-accent-soft);
+	color: var(--spc-accent-ink);
+	font-size: 0.68rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	vertical-align: middle;
+}
+
+.spc-tag-muted {
+	background: transparent;
+	border: 1px solid var(--spc-line);
+	color: var(--spc-muted);
+	font-weight: 500;
+}
+
+.spc-remove {
+	width: 28px;
+	height: 28px;
+	border: 1px solid var(--spc-line);
+	border-radius: 50%;
+	background: none;
+	color: var(--spc-muted);
+	font-size: 1.1rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.spc-remove:hover {
+	border-color: #dc2626;
+	color: #dc2626;
+}
+
+.spc-link {
+	padding: 0;
+	border: none;
+	background: none;
+	color: var(--spc-accent);
+	font: inherit;
+	font-size: 0.88rem;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* -------------------------------------------------- custom appliance */
+
+.spc-custom,
+.spc-advanced {
+	margin-top: 14px;
+	padding: 12px 14px;
+	border: 1px solid var(--spc-line);
+	border-radius: var(--spc-radius);
+	background: var(--spc-panel);
+}
+
+.spc-custom > summary,
+.spc-advanced > summary {
+	font-weight: 600;
+	cursor: pointer;
+	color: var(--spc-accent);
+}
+
+.spc-custom-fields {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px;
+	margin-top: 14px;
+}
+
+.spc-custom-fields label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 0.82rem;
+	color: var(--spc-muted);
+}
+
+.spc-custom-fields input[type="text"],
+.spc-custom-fields input[type="number"] {
+	padding: 8px 10px;
+	border: 1px solid var(--spc-line);
+	border-radius: 6px;
+	background: var(--spc-bg);
+	color: var(--spc-ink);
+	font: inherit;
+	font-size: 0.92rem;
+}
+
+.spc-custom-fields .spc-custom-name {
+	min-width: 200px;
+}
+
+.spc-custom-fields .spc-custom-watts,
+.spc-custom-fields .spc-custom-hours {
+	width: 110px;
+}
+
+.spc-check {
+	flex-direction: row !important;
+	align-items: center;
+	gap: 6px !important;
+	padding-bottom: 8px;
+}
+
+.spc-custom-error {
+	margin: 10px 0 0;
+	color: #dc2626;
+	font-size: 0.88rem;
+}
+
+/* -------------------------------------------------------- form fields */
+
+.spc-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: var(--spc-gap);
+}
+
+.spc-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.spc-field-label {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--spc-muted);
+}
+
+.spc-field select,
+.spc-field input[type="number"],
+.spc-field input[type="email"],
+.spc-field input[type="text"] {
+	width: 100%;
+	padding: 9px 10px;
+	border: 1px solid var(--spc-line);
+	border-radius: 8px;
+	background: var(--spc-bg);
+	color: var(--spc-ink);
+	font: inherit;
+	font-size: 0.94rem;
+}
+
+.spc-field input[type="range"] {
+	width: 100%;
+	accent-color: var(--spc-accent);
+}
+
+.spc-simultaneity-out {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--spc-accent);
+}
+
+.spc-hint {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	background: var(--spc-line);
+	color: var(--spc-muted);
+	font-size: 0.65rem;
+	font-weight: 700;
+	cursor: help;
+	vertical-align: middle;
+}
+
+.spc-advanced .spc-fields {
+	margin-top: 14px;
+}
+
+/* ------------------------------------------------------------ results */
+
+.spc-results-empty p {
+	margin: 0;
+	padding: 20px;
+	border: 1px dashed var(--spc-line);
+	border-radius: var(--spc-radius);
+	color: var(--spc-muted);
+	text-align: center;
+}
+
+.spc-headline {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 2px;
+	margin-bottom: var(--spc-gap);
+	border-radius: var(--spc-radius);
+	overflow: hidden;
+	background: var(--spc-line);
+}
+
+.spc-headline-item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 20px 18px;
+	background: var(--spc-accent);
+	color: #fff;
+}
+
+.spc-headline-item:nth-child(2) {
+	background: var(--spc-accent-ink);
+}
+
+.spc-headline-item:nth-child(3) {
+	background: #164e63;
+}
+
+.spc-headline-value {
+	font-size: 2.1rem;
+	font-weight: 700;
+	line-height: 1.05;
+}
+
+.spc-headline-unit {
+	font-size: 0.9rem;
+	opacity: 0.9;
+}
+
+.spc-headline-label {
+	margin-top: 6px;
+	font-size: 0.74rem;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	opacity: 0.75;
+}
+
+.spc-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: var(--spc-gap);
+}
+
+.spc-card {
+	padding: 16px;
+	border: 1px solid var(--spc-line);
+	border-radius: var(--spc-radius);
+	background: var(--spc-panel);
+}
+
+.spc-card h4 {
+	margin: 0 0 8px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: var(--spc-muted);
+}
+
+.spc-card-lead {
+	margin: 0 0 12px;
+	font-size: 1.15rem;
+	line-height: 1.3;
+}
+
+.spc-card-lead strong {
+	font-size: 1.5rem;
+	color: var(--spc-accent);
+}
+
+.spc-card dl {
+	margin: 0;
+	font-size: 0.9rem;
+}
+
+.spc-card dl > div {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 5px 0;
+	border-top: 1px solid var(--spc-line);
+}
+
+.spc-card dt {
+	color: var(--spc-muted);
+}
+
+.spc-card dd {
+	margin: 0;
+	font-weight: 600;
+	text-align: right;
+}
+
+.spc-card-impact {
+	border-color: var(--spc-accent);
+}
+
+.spc-card-cost .spc-card-lead strong {
+	color: var(--spc-sun);
+}
+
+.spc-card-note {
+	margin: 10px 0 0;
+	font-size: 0.78rem;
+	color: var(--spc-muted);
+}
+
+/* ----------------------------------------------------------- warnings */
+
+.spc-warnings {
+	margin-top: var(--spc-gap);
+	padding: 14px 16px;
+	border-left: 4px solid var(--spc-sun);
+	border-radius: 0 var(--spc-radius) var(--spc-radius) 0;
+	background: var(--spc-panel);
+}
+
+.spc-warnings h4 {
+	margin: 0 0 8px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: var(--spc-muted);
+}
+
+.spc-warnings ul {
+	margin: 0;
+	padding-left: 20px;
+	font-size: 0.9rem;
+}
+
+.spc-warnings li + li {
+	margin-top: 6px;
+}
+
+/* ------------------------------------------------------------ actions */
+
+.spc-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: var(--spc-gap);
+}
+
+.spc-btn {
+	display: inline-block;
+	padding: 11px 20px;
+	border: 1px solid var(--spc-accent);
+	border-radius: 8px;
+	font: inherit;
+	font-size: 0.94rem;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.spc-btn-primary {
+	background: var(--spc-accent);
+	color: #fff;
+}
+
+.spc-btn-primary:hover {
+	opacity: 0.9;
+	color: #fff;
+}
+
+.spc-btn-secondary {
+	background: none;
+	color: var(--spc-accent);
+}
+
+.spc-btn-secondary:hover {
+	background: var(--spc-accent-soft);
+}
+
+.spc-btn[disabled] {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.spc-email-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px;
+	margin-top: var(--spc-gap);
+	padding: 16px;
+	border: 1px solid var(--spc-line);
+	border-radius: var(--spc-radius);
+	background: var(--spc-panel);
+}
+
+.spc-email-form .spc-field {
+	flex: 1 1 200px;
+}
+
+.spc-email-status {
+	flex: 1 0 100%;
+	margin: 0;
+	font-size: 0.88rem;
+}
+
+.spc-email-status.is-ok {
+	color: var(--spc-accent);
+}
+
+.spc-email-status.is-error {
+	color: #dc2626;
+}
+
+.spc-disclaimer {
+	margin: var(--spc-gap) 0 0;
+	font-size: 0.8rem;
+	color: var(--spc-muted);
+}
+
+/* ----------------------------------------------------------- utility */
+
+.spc [hidden] {
+	display: none !important;
+}
+
+.spc .screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.spc :focus-visible {
+	outline: 2px solid var(--spc-accent);
+	outline-offset: 2px;
+}
+
+/* The load-list total lives in the table footer on wide screens, and on its
+   own line below the table once the table starts scrolling sideways. */
+.spc-total-mobile {
+	display: none;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0 0 14px;
+	padding-top: 10px;
+	border-top: 2px solid var(--spc-line);
+	font-weight: 700;
+}
+
+@media (max-width: 620px) {
+	.spc-table tfoot {
+		display: none;
+	}
+
+	.spc-total-mobile:not([hidden]) {
+		display: flex;
+	}
+}
+
+@media (max-width: 600px) {
+	.spc-headline-value {
+		font-size: 1.7rem;
+	}
+
+	.spc-custom-fields .spc-custom-name {
+		min-width: 100%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.spc * {
+		transition: none !important;
+	}
+}
+
+/* ------------------------------------------------------------- print */
+
+@media print {
+	.spc-picker,
+	.spc-profiles,
+	.spc-actions,
+	.spc-email-form,
+	.spc-custom,
+	.spc-advanced,
+	.spc-clear,
+	.spc-col-action {
+		display: none !important;
+	}
+
+	.spc {
+		max-width: none;
+		color: #000;
+		background: #fff;
+	}
+
+	.spc-headline-item {
+		background: #fff !important;
+		color: #000 !important;
+		border: 1px solid #999;
+	}
+
+	.spc-card,
+	.spc-warnings {
+		break-inside: avoid;
+		background: #fff;
+	}
+
+	.spc-table td.spc-col-num input {
+		border: none;
+		background: none;
+		padding: 0;
+	}
+}
+
+</style>
+</head>
+<body>
+<p class="preview-note">Standalone preview generated by <code>tools/build-preview.php</code>. In WordPress this is the <code>[solar_calculator]</code> shortcode.</p>
+		<div class="spc" id="spc-1" data-profile="home" data-costs="1">
+
+							<header class="spc-header">
+					<h2 class="spc-title">Solar System Sizing Calculator</h2>
+											<p class="spc-subtitle">Pick what you need to run and get the panel, battery and inverter sizes to run it.</p>
+									</header>
+			
+			<noscript>
+				<p class="spc-noscript">This calculator needs JavaScript enabled in your browser.</p>
+			</noscript>
+
+			<div class="spc-body" hidden>
+
+				<!-- Step 1: where is the system going -->
+				<section class="spc-step" aria-labelledby="spc-1-step1">
+					<h3 class="spc-step-title" id="spc-1-step1">
+						<span class="spc-step-num">1</span> Where is this system going?
+					</h3>
+					<div class="spc-profiles" role="radiogroup" aria-label="Usage profile">
+													<button type="button"
+								class="spc-profile is-active"
+								role="radio"
+								aria-checked="true"
+								data-profile="home">
+								<span class="spc-profile-icon" aria-hidden="true" data-icon="home"></span>
+								<span class="spc-profile-label">Home</span>
+								<span class="spc-profile-blurb">Whole house or a few essential circuits</span>
+							</button>
+													<button type="button"
+								class="spc-profile"
+								role="radio"
+								aria-checked="false"
+								data-profile="office">
+								<span class="spc-profile-icon" aria-hidden="true" data-icon="office"></span>
+								<span class="spc-profile-label">Office</span>
+								<span class="spc-profile-blurb">Workstations, IT equipment and cooling</span>
+							</button>
+													<button type="button"
+								class="spc-profile"
+								role="radio"
+								aria-checked="false"
+								data-profile="travel">
+								<span class="spc-profile-icon" aria-hidden="true" data-icon="van"></span>
+								<span class="spc-profile-label">Travel / RV</span>
+								<span class="spc-profile-blurb">Van, caravan, boat or camping setup</span>
+							</button>
+											</div>
+				</section>
+
+				<!-- Step 2: the loads -->
+				<section class="spc-step" aria-labelledby="spc-1-step2">
+					<h3 class="spc-step-title" id="spc-1-step2">
+						<span class="spc-step-num">2</span> What do you need to power?
+					</h3>
+
+					<div class="spc-picker">
+						<label class="spc-search">
+							<span class="screen-reader-text">Search appliances</span>
+							<input type="search" class="spc-search-input" placeholder="Search appliances&hellip;" autocomplete="off">
+						</label>
+						<div class="spc-library" role="list"></div>
+					</div>
+
+					<div class="spc-selected">
+						<div class="spc-selected-head">
+							<h4>Your load list</h4>
+							<button type="button" class="spc-link spc-clear" hidden>Clear all</button>
+						</div>
+
+						<p class="spc-empty">Nothing selected yet. Add appliances above, or add your own below.</p>
+
+						<div class="spc-table-wrap">
+							<table class="spc-table" hidden>
+								<thead>
+									<tr>
+										<th scope="col" class="spc-col-name">Appliance</th>
+										<th scope="col" class="spc-col-num">Qty</th>
+										<th scope="col" class="spc-col-num">Watts each</th>
+										<th scope="col" class="spc-col-num">Hours/day</th>
+										<th scope="col" class="spc-col-num">Wh/day</th>
+										<th scope="col" class="spc-col-action"><span class="screen-reader-text">Remove</span></th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+								<tfoot>
+									<tr>
+										<th scope="row" colspan="4">Total daily energy</th>
+										<td class="spc-col-num spc-total-wh">0 Wh</td>
+										<td></td>
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+
+						<p class="spc-total-mobile" hidden>
+							<span>Total daily energy</span>
+							<strong class="spc-total-wh">0 Wh</strong>
+						</p>
+
+						<details class="spc-custom">
+							<summary>Add an appliance that isn't listed</summary>
+							<div class="spc-custom-fields">
+								<label>Name
+									<input type="text" class="spc-custom-name" placeholder="e.g. Borehole pump">
+								</label>
+								<label>Watts
+									<input type="number" class="spc-custom-watts" min="1" step="1" placeholder="750">
+								</label>
+								<label>Hours/day
+									<input type="number" class="spc-custom-hours" min="0" max="24" step="0.25" placeholder="2">
+								</label>
+								<label class="spc-check">
+									<input type="checkbox" class="spc-custom-dc">
+									<span>Runs on 12/24V DC<span class="spc-hint" title="DC appliances draw straight from the battery and skip inverter losses">?</span></span>
+								</label>
+								<button type="button" class="spc-btn spc-btn-secondary spc-custom-add">Add</button>
+							</div>
+							<p class="spc-custom-error" role="alert" hidden></p>
+						</details>
+					</div>
+				</section>
+
+				<!-- Step 3: system options -->
+				<section class="spc-step" aria-labelledby="spc-1-step3">
+					<h3 class="spc-step-title" id="spc-1-step3">
+						<span class="spc-step-num">3</span> Your location and equipment
+					</h3>
+
+					<div class="spc-fields">
+						<label class="spc-field">
+							<span class="spc-field-label">Region <span class="spc-hint" title="Sets average peak sun hours - the number of hours per day your panels produce at full rating">?</span></span>
+							<select class="spc-region">
+																	<option value="wafrica_north"
+										data-psh="5.8"
+										>
+										West Africa - northern / Sahel &mdash; 5.8h
+									</option>
+																	<option value="wafrica_south"
+										data-psh="4.5"
+										 selected="selected">
+										West Africa - coastal / humid &mdash; 4.5h
+									</option>
+																	<option value="eafrica"
+										data-psh="5.5"
+										>
+										East Africa / Horn of Africa &mdash; 5.5h
+									</option>
+																	<option value="safrica"
+										data-psh="5.5"
+										>
+										Southern Africa &mdash; 5.5h
+									</option>
+																	<option value="nafrica_me"
+										data-psh="5.7"
+										>
+										North Africa / Middle East &mdash; 5.7h
+									</option>
+																	<option value="south_asia"
+										data-psh="5"
+										>
+										South Asia (India, Pakistan) &mdash; 5h
+									</option>
+																	<option value="sea"
+										data-psh="4.2"
+										>
+										South East Asia &mdash; 4.2h
+									</option>
+																	<option value="aus"
+										data-psh="5"
+										>
+										Australia &mdash; 5h
+									</option>
+																	<option value="us_southwest"
+										data-psh="5.7"
+										>
+										US Southwest &mdash; 5.7h
+									</option>
+																	<option value="us_central"
+										data-psh="4.5"
+										>
+										US Central / Southeast &mdash; 4.5h
+									</option>
+																	<option value="us_north"
+										data-psh="3.5"
+										>
+										US North / Canada &mdash; 3.5h
+									</option>
+																	<option value="latam"
+										data-psh="4.8"
+										>
+										Latin America &mdash; 4.8h
+									</option>
+																	<option value="south_europe"
+										data-psh="4.2"
+										>
+										Southern Europe &mdash; 4.2h
+									</option>
+																	<option value="north_europe"
+										data-psh="2.6"
+										>
+										Northern Europe / UK &mdash; 2.6h
+									</option>
+																<option value="custom">Enter my own figure</option>
+							</select>
+						</label>
+
+						<label class="spc-field spc-field-psh" hidden>
+							<span class="spc-field-label">Peak sun hours per day</span>
+							<input type="number" class="spc-psh" min="0.5" max="10" step="0.1" value="4.5">
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">Days of backup <span class="spc-hint" title="How many days the batteries should carry the load with no sun at all">?</span></span>
+							<select class="spc-autonomy">
+								<option value="0.5">Half a day (evening only)</option>
+								<option value="1" selected>1 day</option>
+								<option value="2">2 days</option>
+								<option value="3">3 days</option>
+							</select>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">Battery type</span>
+							<select class="spc-battery-type">
+																	<option value="lithium"  selected="selected">
+										Lithium (LiFePO4)									</option>
+																	<option value="agm" >
+										AGM / Gel sealed									</option>
+																	<option value="tubular" >
+										Tubular deep cycle									</option>
+																	<option value="flooded" >
+										Flooded lead-acid									</option>
+															</select>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">Panel size</span>
+							<select class="spc-panel">
+																	<option value="100" >
+										100W panels
+									</option>
+																	<option value="150" >
+										150W panels
+									</option>
+																	<option value="200" >
+										200W panels
+									</option>
+																	<option value="250" >
+										250W panels
+									</option>
+																	<option value="300" >
+										300W panels
+									</option>
+																	<option value="330" >
+										330W panels
+									</option>
+																	<option value="400" >
+										400W panels
+									</option>
+																	<option value="450" >
+										450W panels
+									</option>
+																	<option value="550"  selected="selected">
+										550W panels
+									</option>
+																	<option value="600" >
+										600W panels
+									</option>
+															</select>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">Battery size</span>
+							<select class="spc-battery-unit">
+																	<option value="12v100" >
+										12V 100Ah									</option>
+																	<option value="12v150" >
+										12V 150Ah									</option>
+																	<option value="12v200"  selected="selected">
+										12V 200Ah									</option>
+																	<option value="12v220" >
+										12V 220Ah									</option>
+																	<option value="24v100" >
+										24V 100Ah									</option>
+																	<option value="48v100" >
+										48V 100Ah									</option>
+																	<option value="48v200" >
+										48V 200Ah									</option>
+															</select>
+						</label>
+					</div>
+
+					<details class="spc-advanced">
+						<summary>Advanced options</summary>
+						<div class="spc-fields">
+							<label class="spc-field">
+								<span class="spc-field-label">System voltage</span>
+								<select class="spc-voltage">
+									<option value="auto" selected>Choose for me</option>
+									<option value="12">12V</option>
+									<option value="24">24V</option>
+									<option value="48">48V</option>
+								</select>
+							</label>
+
+							<label class="spc-field">
+								<span class="spc-field-label">Inverter type</span>
+								<select class="spc-inverter-type">
+									<option value="pure_sine" selected>Pure sine wave</option>
+									<option value="modified_sine">Modified sine wave</option>
+								</select>
+							</label>
+
+							<label class="spc-field">
+								<span class="spc-field-label">Charge controller</span>
+								<select class="spc-controller">
+									<option value="mppt" selected>MPPT</option>
+									<option value="pwm">PWM</option>
+								</select>
+							</label>
+
+							<label class="spc-field">
+								<span class="spc-field-label">
+									Simultaneous use
+									<span class="spc-hint" title="Share of your connected appliances likely to run at the same moment. Drives inverter size, not energy.">?</span>
+								</span>
+								<input type="range" class="spc-simultaneity" min="30" max="100" step="5" value="70">
+								<output class="spc-simultaneity-out">70%</output>
+							</label>
+						</div>
+					</details>
+				</section>
+
+				<!-- Results -->
+				<section class="spc-step spc-results-step" aria-labelledby="spc-1-results" aria-live="polite">
+					<h3 class="spc-step-title" id="spc-1-results">
+						<span class="spc-step-num">4</span> Your system
+					</h3>
+
+					<div class="spc-results-empty">
+						<p>Add at least one appliance to see your system size.</p>
+					</div>
+
+					<div class="spc-results" hidden>
+
+						<div class="spc-headline">
+							<div class="spc-headline-item">
+								<span class="spc-headline-value spc-r-daily">0</span>
+								<span class="spc-headline-unit">kWh per day</span>
+								<span class="spc-headline-label">Energy you use</span>
+							</div>
+							<div class="spc-headline-item">
+								<span class="spc-headline-value spc-r-array">0</span>
+								<span class="spc-headline-unit">watts of panels</span>
+								<span class="spc-headline-label">Solar array</span>
+							</div>
+							<div class="spc-headline-item">
+								<span class="spc-headline-value spc-r-bank">0</span>
+								<span class="spc-headline-unit">kWh of battery</span>
+								<span class="spc-headline-label">Storage</span>
+							</div>
+						</div>
+
+						<div class="spc-cards">
+
+							<article class="spc-card">
+								<h4>Solar array</h4>
+								<p class="spc-card-lead"><strong class="spc-r-panel-qty">0</strong> &times; <span class="spc-r-panel-size">550</span>W panels</p>
+								<dl>
+									<div><dt>Minimum array</dt><dd class="spc-r-array-min">0 W</dd></div>
+									<div><dt>Installed</dt><dd class="spc-r-array-installed">0 W</dd></div>
+									<div><dt>Expected harvest</dt><dd class="spc-r-harvest">0 Wh/day</dd></div>
+									<div><dt>Peak sun hours</dt><dd class="spc-r-psh">0 h</dd></div>
+								</dl>
+							</article>
+
+							<article class="spc-card">
+								<h4>Battery bank</h4>
+								<p class="spc-card-lead"><strong class="spc-r-batt-qty">0</strong> &times; <span class="spc-r-batt-unit">12V 200Ah</span></p>
+								<dl>
+									<div><dt>Bank capacity</dt><dd class="spc-r-bank-ah">0 Ah</dd></div>
+									<div><dt>Nameplate energy</dt><dd class="spc-r-bank-kwh">0 kWh</dd></div>
+									<div><dt>Usable energy</dt><dd class="spc-r-usable">0 kWh</dd></div>
+									<div><dt>Wiring</dt><dd class="spc-r-batt-config">&mdash;</dd></div>
+									<div><dt>Runs your load for</dt><dd class="spc-r-backup">0 h</dd></div>
+								</dl>
+							</article>
+
+							<article class="spc-card">
+								<h4>Inverter</h4>
+								<p class="spc-card-lead"><strong class="spc-r-inverter">0</strong> W continuous</p>
+								<dl>
+									<div><dt>Running load</dt><dd class="spc-r-running">0 W</dd></div>
+									<div><dt>Startup surge</dt><dd class="spc-r-surge">0 W</dd></div>
+									<div><dt>Apparent power</dt><dd class="spc-r-va">0 VA</dd></div>
+									<div><dt>System voltage</dt><dd class="spc-r-voltage">12V</dd></div>
+								</dl>
+							</article>
+
+							<article class="spc-card">
+								<h4>Charge controller</h4>
+								<p class="spc-card-lead"><strong class="spc-r-controller">0</strong> A <span class="spc-r-controller-type">MPPT</span></p>
+								<dl>
+									<div><dt>Calculated current</dt><dd class="spc-r-controller-calc">0 A</dd></div>
+									<div><dt>Array voltage side</dt><dd class="spc-r-voltage-2">12V</dd></div>
+								</dl>
+							</article>
+
+							<article class="spc-card spc-card-impact">
+								<h4>Yearly impact</h4>
+								<dl>
+									<div><dt>Energy generated</dt><dd class="spc-r-annual">0 kWh</dd></div>
+									<div><dt>CO<sub>2</sub> avoided</dt><dd class="spc-r-co2">0 kg</dd></div>
+									<div><dt>Same as planting</dt><dd class="spc-r-trees">0 trees</dd></div>
+									<div><dt>Generator fuel saved</dt><dd class="spc-r-fuel">0 L</dd></div>
+								</dl>
+							</article>
+
+							<article class="spc-card spc-card-cost">
+								<h4>Budget estimate</h4>
+								<p class="spc-card-lead"><strong class="spc-r-cost-total">&mdash;</strong></p>
+								<dl>
+									<div><dt>Panels</dt><dd class="spc-r-cost-pv">&mdash;</dd></div>
+									<div><dt>Batteries</dt><dd class="spc-r-cost-batt">&mdash;</dd></div>
+									<div><dt>Inverter</dt><dd class="spc-r-cost-inv">&mdash;</dd></div>
+									<div><dt>Wiring &amp; install</dt><dd class="spc-r-cost-install">&mdash;</dd></div>
+								</dl>
+								<p class="spc-card-note">Indicative only. Prices vary by brand and market.</p>
+							</article>
+
+						</div>
+
+						<div class="spc-warnings" hidden>
+							<h4>Worth knowing</h4>
+							<ul></ul>
+						</div>
+
+						<div class="spc-actions">
+							<button type="button" class="spc-btn spc-btn-secondary spc-print">Print / save as PDF</button>
+																				</div>
+
+						
+						<p class="spc-disclaimer">
+							Estimates for planning. Have a qualified installer confirm cable sizes, protection and mounting before you buy.
+						</p>
+					</div>
+				</section>
+			</div>
+		</div>
+		
+<script>window.SPC_DATA = {"appliances":[{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"led_bulb","name":"LED bulb","profiles":["home","office"],"watts":10,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"security_light","name":"Security flood light","profiles":["home","office"],"watts":30,"hours":12},{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"panel_light","name":"LED panel / tube light","profiles":["home","office"],"watts":40,"hours":8},{"duty":1,"surge":1.5,"dc":false,"group":"Cooling","id":"ceiling_fan","name":"Ceiling fan","profiles":["home","office"],"watts":75,"hours":8},{"duty":1,"surge":1.5,"dc":false,"group":"Cooling","id":"standing_fan","name":"Standing / table fan","profiles":["home","office"],"watts":60,"hours":6},{"duty":0.7,"surge":1.5,"dc":false,"group":"Cooling","id":"ac_1hp_inv","name":"Air conditioner 1HP (inverter)","profiles":["home","office"],"watts":750,"hours":6},{"duty":0.8,"surge":3,"dc":false,"group":"Cooling","id":"ac_15hp","name":"Air conditioner 1.5HP (standard)","profiles":["home","office"],"watts":1500,"hours":6},{"duty":0.35,"surge":3,"dc":false,"group":"Kitchen","id":"fridge_small","name":"Refrigerator (150-200L)","profiles":["home","office"],"watts":100,"hours":24},{"duty":0.4,"surge":3,"dc":false,"group":"Kitchen","id":"fridge_large","name":"Refrigerator (350L+ / double door)","profiles":["home"],"watts":200,"hours":24},{"duty":0.4,"surge":3,"dc":false,"group":"Kitchen","id":"freezer","name":"Chest freezer","profiles":["home"],"watts":150,"hours":24},{"duty":1,"surge":1.5,"dc":false,"group":"Kitchen","id":"microwave","name":"Microwave oven","profiles":["home","office"],"watts":1000,"hours":0.3},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"kettle","name":"Electric kettle","profiles":["home","office"],"watts":1500,"hours":0.3},{"duty":1,"surge":2,"dc":false,"group":"Kitchen","id":"blender","name":"Blender","profiles":["home"],"watts":400,"hours":0.2},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"rice_cooker","name":"Rice cooker","profiles":["home"],"watts":700,"hours":0.5},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"toaster","name":"Toaster","profiles":["home"],"watts":800,"hours":0.2},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"tv_32","name":"LED TV 32\"","profiles":["home","office"],"watts":50,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"tv_55","name":"LED TV 55\"","profiles":["home"],"watts":120,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"decoder","name":"Decoder / set-top box","profiles":["home"],"watts":25,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"router","name":"Wi-Fi router / modem","profiles":["home","office","travel"],"watts":12,"hours":24},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"laptop","name":"Laptop","profiles":["home","office","travel"],"watts":65,"hours":6},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"phone_charger","name":"Phone charger","profiles":["home","office","travel"],"watts":8,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"cctv","name":"CCTV camera","profiles":["home","office"],"watts":10,"hours":24},{"duty":1,"surge":3,"dc":false,"group":"Utility","id":"washing_machine","name":"Washing machine","profiles":["home"],"watts":500,"hours":1},{"duty":1,"surge":1,"dc":false,"group":"Utility","id":"iron","name":"Clothes iron","profiles":["home"],"watts":1200,"hours":0.5},{"duty":1,"surge":1,"dc":false,"group":"Utility","id":"hair_dryer","name":"Hair dryer","profiles":["home"],"watts":1200,"hours":0.2},{"duty":1,"surge":3,"dc":false,"group":"Utility","id":"water_pump","name":"Water pump (0.5HP)","profiles":["home"],"watts":375,"hours":1},{"duty":0.6,"surge":1,"dc":false,"group":"Utility","id":"space_heater","name":"Electric space heater","profiles":["home","office"],"watts":1500,"hours":2},{"duty":1,"surge":1.5,"dc":false,"group":"Workstation","id":"desktop_pc","name":"Desktop PC + monitor","profiles":["office","home"],"watts":200,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Workstation","id":"laptop_dock","name":"Laptop + external monitor","profiles":["office"],"watts":120,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Workstation","id":"monitor","name":"Monitor 24\"","profiles":["office"],"watts":30,"hours":8},{"duty":1,"surge":2,"dc":false,"group":"Office kit","id":"laser_printer","name":"Laser printer","profiles":["office"],"watts":500,"hours":0.5},{"duty":1,"surge":1.5,"dc":false,"group":"Office kit","id":"inkjet_printer","name":"Inkjet printer","profiles":["office","home"],"watts":30,"hours":0.5},{"duty":0.5,"surge":2,"dc":false,"group":"Office kit","id":"photocopier","name":"Photocopier","profiles":["office"],"watts":1200,"hours":1},{"duty":1,"surge":1,"dc":false,"group":"Office kit","id":"scanner","name":"Scanner","profiles":["office"],"watts":20,"hours":1},{"duty":1,"surge":1.5,"dc":false,"group":"Office kit","id":"projector","name":"Projector","profiles":["office"],"watts":300,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"IT","id":"net_switch","name":"Network switch","profiles":["office"],"watts":20,"hours":24},{"duty":1,"surge":1.5,"dc":false,"group":"IT","id":"server","name":"Small server / NAS","profiles":["office"],"watts":350,"hours":24},{"duty":1,"surge":1,"dc":false,"group":"IT","id":"voip_phone","name":"VoIP desk phone","profiles":["office"],"watts":6,"hours":8},{"duty":0.4,"surge":2,"dc":false,"group":"Office kit","id":"water_dispenser","name":"Water dispenser (hot & cold)","profiles":["office","home"],"watts":550,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Office kit","id":"coffee_machine","name":"Coffee machine","profiles":["office","home"],"watts":900,"hours":0.3},{"duty":1,"surge":1,"dc":true,"group":"Lighting","id":"rv_led","name":"12V LED strip lighting","profiles":["travel"],"watts":5,"hours":5},{"duty":0.4,"surge":3,"dc":true,"group":"Cooling","id":"rv_fridge","name":"12V compressor fridge","profiles":["travel"],"watts":45,"hours":24},{"duty":0.5,"surge":2,"dc":true,"group":"Cooling","id":"cooler_box","name":"Portable cooler box","profiles":["travel"],"watts":60,"hours":24},{"duty":1,"surge":1.5,"dc":true,"group":"Cooling","id":"vent_fan","name":"Roof vent fan","profiles":["travel"],"watts":30,"hours":6},{"duty":1,"surge":2,"dc":true,"group":"Utility","id":"rv_pump","name":"12V water pump","profiles":["travel"],"watts":50,"hours":0.5},{"duty":0.5,"surge":4,"dc":true,"group":"Utility","id":"diesel_heater","name":"Diesel air heater","profiles":["travel"],"watts":30,"hours":6},{"duty":1,"surge":2,"dc":true,"group":"Utility","id":"air_compressor","name":"12V air compressor","profiles":["travel"],"watts":180,"hours":0.2},{"duty":1,"surge":1.5,"dc":false,"group":"Electronics","id":"starlink","name":"Satellite internet (Starlink)","profiles":["travel","office"],"watts":60,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Medical","id":"cpap","name":"CPAP machine (no humidifier)","profiles":["travel","home"],"watts":60,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"camera_charger","name":"Camera battery charger","profiles":["travel"],"watts":30,"hours":2},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"drone_charger","name":"Drone battery charger","profiles":["travel"],"watts":80,"hours":1.5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"portable_tv","name":"Portable TV","profiles":["travel"],"watts":40,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"induction_hob","name":"Portable induction cooktop","profiles":["travel","home"],"watts":1200,"hours":0.5},{"duty":0.5,"surge":1,"dc":false,"group":"Utility","id":"electric_blanket","name":"Electric blanket","profiles":["travel","home"],"watts":60,"hours":6}],"profiles":{"home":{"label":"Home","blurb":"Whole house or a few essential circuits","icon":"home","autonomy":1},"office":{"label":"Office","blurb":"Workstations, IT equipment and cooling","icon":"office","autonomy":1},"travel":{"label":"Travel / RV","blurb":"Van, caravan, boat or camping setup","icon":"van","autonomy":2}},"regions":[{"id":"wafrica_north","name":"West Africa - northern / Sahel","psh":5.8},{"id":"wafrica_south","name":"West Africa - coastal / humid","psh":4.5},{"id":"eafrica","name":"East Africa / Horn of Africa","psh":5.5},{"id":"safrica","name":"Southern Africa","psh":5.5},{"id":"nafrica_me","name":"North Africa / Middle East","psh":5.7},{"id":"south_asia","name":"South Asia (India, Pakistan)","psh":5},{"id":"sea","name":"South East Asia","psh":4.2},{"id":"aus","name":"Australia","psh":5},{"id":"us_southwest","name":"US Southwest","psh":5.7},{"id":"us_central","name":"US Central / Southeast","psh":4.5},{"id":"us_north","name":"US North / Canada","psh":3.5},{"id":"latam","name":"Latin America","psh":4.8},{"id":"south_europe","name":"Southern Europe","psh":4.2},{"id":"north_europe","name":"Northern Europe / UK","psh":2.6}],"batteries":{"lithium":{"label":"Lithium (LiFePO4)","dod":0.8,"efficiency":0.95,"cycles":4000,"cost_kwh":400},"agm":{"label":"AGM / Gel sealed","dod":0.5,"efficiency":0.85,"cycles":700,"cost_kwh":250},"tubular":{"label":"Tubular deep cycle","dod":0.5,"efficiency":0.85,"cycles":1500,"cost_kwh":220},"flooded":{"label":"Flooded lead-acid","dod":0.5,"efficiency":0.8,"cycles":500,"cost_kwh":160}},"constants":{"inverter_efficiency":{"pure_sine":0.9,"modified_sine":0.85},"controller_efficiency":{"mppt":0.95,"pwm":0.75},"array_derate":0.85,"safety_factor":1.25,"power_factor":0.8,"simultaneity":0.7,"co2_per_kwh":0.45,"co2_per_tree_year":21,"generator_l_per_kwh":0.4,"inverter_sizes":[300,600,1000,1500,2000,2500,3000,4000,5000,6000,8000,10000,12000,15000,20000],"controller_sizes":[10,20,30,40,50,60,80,100,120,150,200],"panel_sizes":[100,150,200,250,300,330,400,450,550,600],"battery_units":[{"id":"12v100","label":"12V 100Ah","volts":12,"ah":100},{"id":"12v150","label":"12V 150Ah","volts":12,"ah":150},{"id":"12v200","label":"12V 200Ah","volts":12,"ah":200},{"id":"12v220","label":"12V 220Ah","volts":12,"ah":220},{"id":"24v100","label":"24V 100Ah","volts":24,"ah":100},{"id":"48v100","label":"48V 100Ah","volts":48,"ah":100},{"id":"48v200","label":"48V 200Ah","volts":48,"ah":200}]},"settings":{"currency":"$","showCosts":true,"costPvWatt":0.9,"costInverterKw":300,"costInstallPct":25,"enableEmail":false,"ctaText":"","ctaUrl":"","defaultRegion":"wafrica_south","defaultBattery":"lithium","defaultPanel":550},"ajaxUrl":"/wp-admin/admin-ajax.php","nonce":"preview-nonce"};</script>
+<script>
+/**
+ * Solar Power Calculator - front-end.
+ *
+ * Runs the same sizing model as includes/class-spc-calculator.php so results
+ * update instantly as the visitor changes anything. All constants come from
+ * window.SPC_DATA (printed by PHP), so only the formulas live in both places.
+ * If you change a formula here, change it there too.
+ */
+(function () {
+	'use strict';
+
+	var DATA = window.SPC_DATA;
+	if (!DATA) {
+		return;
+	}
+
+	var C = DATA.constants;
+	var S = DATA.settings;
+
+	/* ------------------------------------------------------------ helpers */
+
+	function num(value, decimals) {
+		var n = isFinite(value) ? value : 0;
+		return n.toLocaleString(undefined, {
+			minimumFractionDigits: decimals || 0,
+			maximumFractionDigits: decimals || 0
+		});
+	}
+
+	function money(value) {
+		return S.currency + num(Math.round(value));
+	}
+
+	function roundUpTo(value, sizes) {
+		for (var i = 0; i < sizes.length; i++) {
+			if (value <= sizes[i]) {
+				return sizes[i];
+			}
+		}
+		return Math.ceil(value);
+	}
+
+	function clamp(value, min, max) {
+		return Math.min(max, Math.max(min, value));
+	}
+
+	function findUnit(id) {
+		for (var i = 0; i < C.battery_units.length; i++) {
+			if (C.battery_units[i].id === id) {
+				return C.battery_units[i];
+			}
+		}
+		return C.battery_units[2];
+	}
+
+	function escapeHtml(text) {
+		var div = document.createElement('div');
+		div.textContent = text == null ? '' : String(text);
+		return div.innerHTML;
+	}
+
+	/* --------------------------------------------------------- the model */
+
+	/**
+	 * Size a system. Mirror of SPC_Calculator::calculate().
+	 *
+	 * @param {Array}  items  Load list.
+	 * @param {Object} config System choices.
+	 * @return {Object} Sizing results.
+	 */
+	function calculate(items, config) {
+		var battery = DATA.batteries[config.batteryType] || DATA.batteries.lithium;
+		var inverterEff = C.inverter_efficiency[config.inverterType] || C.inverter_efficiency.pure_sine;
+		var controllerEff = C.controller_efficiency[config.controller] || C.controller_efficiency.mppt;
+
+		var psh = Math.max(0.5, config.psh);
+		var autonomy = Math.max(0.5, config.autonomy);
+
+		/* 1. Daily energy */
+		var acWh = 0;
+		var dcWh = 0;
+		var acConnectedW = 0;
+		var dcConnectedW = 0;
+		var largestSurge = 0;
+		var largestAcW = 0;
+
+		items.forEach(function (item) {
+			var watts = Math.max(0, item.watts);
+			var qty = Math.max(0, Math.round(item.qty));
+			var hours = clamp(item.hours, 0, 24);
+			var duty = clamp(item.duty == null ? 1 : item.duty, 0.01, 1);
+			var surge = Math.max(1, item.surge == null ? 1 : item.surge);
+
+			if (qty < 1 || watts <= 0) {
+				return;
+			}
+
+			var connected = watts * qty;
+			var energy = connected * hours * duty;
+
+			if (item.dc) {
+				dcWh += energy;
+				dcConnectedW += connected;
+			} else {
+				acWh += energy;
+				acConnectedW += connected;
+				largestAcW = Math.max(largestAcW, watts);
+				// Worst single motor start, on top of everything already running.
+				largestSurge = Math.max(largestSurge, watts * surge - watts);
+			}
+		});
+
+		var dailyWh = acWh + dcWh;
+		// AC loads pay the inverter conversion penalty; DC loads do not.
+		var batteryDrawWh = (inverterEff > 0 ? acWh / inverterEff : 0) + dcWh;
+
+		/* 2. Solar array - independent of system voltage, so it comes first */
+		var systemEfficiency = controllerEff * C.array_derate * battery.efficiency;
+		var arrayWatts = batteryDrawWh > 0 && systemEfficiency > 0
+			? batteryDrawWh / (psh * systemEfficiency)
+			: 0;
+		var panelWatts = Math.max(10, config.panelWatts);
+		var panelQty = arrayWatts > 0 ? Math.ceil(arrayWatts / panelWatts) : 0;
+		var arrayInstalled = panelQty * panelWatts;
+
+		/* 3. System voltage
+		 * A current problem, not an energy one: picked so neither the inverter
+		 * draw nor the array charge current needs impractical cable and fusing.
+		 */
+		var systemVoltage;
+		if (config.voltage === 'auto') {
+			if (acConnectedW <= 1200 && arrayInstalled <= 800 && batteryDrawWh <= 2000) {
+				systemVoltage = 12;
+			} else if (acConnectedW <= 3000 && arrayInstalled <= 2500 && batteryDrawWh <= 6000) {
+				systemVoltage = 24;
+			} else {
+				systemVoltage = 48;
+			}
+		} else {
+			systemVoltage = parseInt(config.voltage, 10);
+		}
+
+		/* 4. Battery bank */
+		var bankWh = batteryDrawWh > 0
+			? (batteryDrawWh * autonomy) / (battery.dod * battery.efficiency)
+			: 0;
+		var bankAh = systemVoltage > 0 ? bankWh / systemVoltage : 0;
+		var usableKwh = (bankWh * battery.dod) / 1000;
+
+		var unit = findUnit(config.batteryUnit);
+		var series = Math.max(1, Math.ceil(systemVoltage / Math.max(1, unit.volts)));
+		var strings = bankAh > 0 ? Math.max(1, Math.ceil(bankAh / Math.max(1, unit.ah))) : 0;
+		var batteryQty = series * strings;
+
+		/* 5. Inverter */
+		var simultaneity = clamp(config.simultaneity, 0.1, 1);
+		// Not everything runs at once, but the inverter must still be able to
+		// carry the single biggest appliance on its own.
+		var runningW = Math.max(acConnectedW * simultaneity, largestAcW);
+		var inverterW = runningW * C.safety_factor;
+		var inverterRated = runningW > 0 ? roundUpTo(inverterW, C.inverter_sizes) : 0;
+		var inverterVa = C.power_factor > 0 ? inverterW / C.power_factor : 0;
+		var surgeW = runningW + largestSurge;
+
+		/* 6. Charge controller */
+		var controllerA = arrayInstalled > 0 && systemVoltage > 0
+			? (arrayInstalled / systemVoltage) * C.safety_factor
+			: 0;
+		var controllerRated = controllerA > 0 ? roundUpTo(controllerA, C.controller_sizes) : 0;
+
+		/* 7. Runtime with no sun */
+		var backupHours = batteryDrawWh > 0
+			? (bankWh * battery.dod) / (batteryDrawWh / 24)
+			: 0;
+
+		/* 8. Cost and impact */
+		var annualKwh = (dailyWh * 365) / 1000;
+		var costPv = arrayInstalled * S.costPvWatt;
+		var costBattery = (bankWh / 1000) * battery.cost_kwh;
+		var costInverter = (inverterRated / 1000) * S.costInverterKw;
+		var costHardware = costPv + costBattery + costInverter;
+		var costInstall = costHardware * (S.costInstallPct / 100);
+
+		var results = {
+			dailyWh: dailyWh,
+			dailyKwh: dailyWh / 1000,
+			annualKwh: annualKwh,
+			batteryDrawWh: batteryDrawWh,
+			runningW: runningW,
+			surgeW: surgeW,
+
+			systemVoltage: systemVoltage,
+			psh: psh,
+			autonomy: autonomy,
+
+			arrayWatts: arrayWatts,
+			arrayInstalled: arrayInstalled,
+			panelWatts: panelWatts,
+			panelQty: panelQty,
+			dailyHarvestWh: arrayInstalled * psh * controllerEff * C.array_derate,
+
+			bankWh: bankWh,
+			bankKwh: bankWh / 1000,
+			bankAh: bankAh,
+			usableKwh: usableKwh,
+			batteryLabel: battery.label,
+			batteryUnit: unit.label,
+			batterySeries: series,
+			batteryStrings: strings,
+			batteryQty: batteryQty,
+			backupHours: backupHours,
+
+			inverterW: inverterW,
+			inverterRated: inverterRated,
+			inverterVa: inverterVa,
+
+			controllerA: controllerA,
+			controllerRated: controllerRated,
+			controllerType: config.controller.toUpperCase(),
+
+			costPv: costPv,
+			costBattery: costBattery,
+			costInverter: costInverter,
+			costInstall: costInstall,
+			costTotal: costHardware + costInstall,
+
+			co2SavedKg: annualKwh * C.co2_per_kwh,
+			treesEquivalent: C.co2_per_tree_year > 0 ? (annualKwh * C.co2_per_kwh) / C.co2_per_tree_year : 0,
+			generatorLitres: annualKwh * C.generator_l_per_kwh
+		};
+
+		results.warnings = warnings(results, config);
+
+		return results;
+	}
+
+	/**
+	 * Practical cautions. Mirror of SPC_Calculator::warnings().
+	 */
+	function warnings(r, config) {
+		var list = [];
+
+		if (r.dailyWh <= 0) {
+			return list;
+		}
+
+		if (r.systemVoltage === 12 && r.runningW > 1200) {
+			list.push('At 12V this load draws over 100A. Move to 24V or 48V to keep cable sizes and losses sensible.');
+		}
+		if (r.controllerRated > 100) {
+			list.push('The array needs more charge current than a single controller usually handles. Split it across two or more controllers.');
+		}
+		if (r.inverterRated > 0 && r.surgeW > r.inverterRated * 2) {
+			list.push('Startup surge is high. Check that your inverter can deliver ' + num(r.surgeW) + 'W for a few seconds, or stagger the motor loads.');
+		}
+		if (config.controller === 'pwm' && r.arrayInstalled > 800) {
+			list.push('PWM controllers waste 15-20% of the harvest on arrays this size. MPPT pays for itself here.');
+		}
+		if (r.autonomy < 2) {
+			list.push('Sized for ' + r.autonomy + ' day of autonomy. Add a day if you get long overcast spells and have no generator or grid backup.');
+		}
+		if (r.bankWh > 0 && r.arrayInstalled > 0 && r.arrayInstalled / r.bankWh < 0.1) {
+			list.push('The array is small relative to the bank, so a deeply discharged bank will take more than a day to recover.');
+		}
+
+		return list;
+	}
+
+	/* ----------------------------------------------------------- the UI */
+
+	function Calculator(root) {
+		this.root = root;
+		this.profile = root.getAttribute('data-profile') || 'home';
+		this.items = [];
+		this.customId = 0;
+		this.q = function (selector) {
+			return root.querySelector(selector);
+		};
+		this.qa = function (selector) {
+			return Array.prototype.slice.call(root.querySelectorAll(selector));
+		};
+
+		this.bind();
+		this.renderLibrary();
+		this.update();
+
+		var body = this.q('.spc-body');
+		if (body) {
+			body.hidden = false;
+		}
+	}
+
+	Calculator.prototype.bind = function () {
+		var self = this;
+
+		// Profile tabs.
+		this.qa('.spc-profile').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.profile = button.getAttribute('data-profile');
+				self.qa('.spc-profile').forEach(function (other) {
+					var active = other === button;
+					other.classList.toggle('is-active', active);
+					other.setAttribute('aria-checked', active ? 'true' : 'false');
+				});
+				var profile = DATA.profiles[self.profile];
+				if (profile) {
+					self.q('.spc-autonomy').value = String(profile.autonomy);
+				}
+				self.renderLibrary();
+				self.update();
+			});
+		});
+
+		// Appliance search.
+		this.q('.spc-search-input').addEventListener('input', function () {
+			self.renderLibrary(this.value);
+		});
+
+		// Load list edits (delegated - rows come and go).
+		this.q('.spc-table tbody').addEventListener('input', function (event) {
+			var input = event.target;
+			var row = input.closest('tr');
+			if (!row) {
+				return;
+			}
+			var item = self.items[parseInt(row.getAttribute('data-index'), 10)];
+			if (!item) {
+				return;
+			}
+			var field = input.getAttribute('data-field');
+			var value = parseFloat(input.value);
+			if (isNaN(value)) {
+				return;
+			}
+			if (field === 'qty') {
+				item.qty = clamp(Math.round(value), 0, 999);
+			} else if (field === 'watts') {
+				item.watts = clamp(value, 0, 50000);
+			} else if (field === 'hours') {
+				item.hours = clamp(value, 0, 24);
+			}
+			self.update();
+		});
+
+		this.q('.spc-table tbody').addEventListener('click', function (event) {
+			var button = event.target.closest('.spc-remove');
+			if (!button) {
+				return;
+			}
+			var index = parseInt(button.closest('tr').getAttribute('data-index'), 10);
+			self.items.splice(index, 1);
+			self.renderItems();
+			self.renderLibrary(self.q('.spc-search-input').value);
+			self.update();
+		});
+
+		this.q('.spc-clear').addEventListener('click', function () {
+			self.items = [];
+			self.renderItems();
+			self.renderLibrary(self.q('.spc-search-input').value);
+			self.update();
+		});
+
+		// Custom appliance.
+		this.q('.spc-custom-add').addEventListener('click', function () {
+			self.addCustom();
+		});
+		this.q('.spc-custom-name').addEventListener('keydown', function (event) {
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				self.addCustom();
+			}
+		});
+
+		// Region select swaps in a manual peak-sun-hours field.
+		this.q('.spc-region').addEventListener('change', function () {
+			var custom = this.value === 'custom';
+			self.q('.spc-field-psh').hidden = !custom;
+			if (!custom) {
+				var option = this.options[this.selectedIndex];
+				self.q('.spc-psh').value = option.getAttribute('data-psh');
+			}
+			self.update();
+		});
+
+		// Simultaneity slider label.
+		var slider = this.q('.spc-simultaneity');
+		slider.addEventListener('input', function () {
+			self.q('.spc-simultaneity-out').textContent = this.value + '%';
+			self.update();
+		});
+
+		// Every other control just recalculates.
+		['.spc-psh', '.spc-autonomy', '.spc-battery-type', '.spc-panel', '.spc-battery-unit',
+			'.spc-voltage', '.spc-inverter-type', '.spc-controller'].forEach(function (selector) {
+			var field = self.q(selector);
+			if (field) {
+				field.addEventListener('change', function () {
+					self.update();
+				});
+			}
+		});
+
+		this.q('.spc-print').addEventListener('click', function () {
+			window.print();
+		});
+
+		this.bindEmail();
+
+		// Seed peak sun hours from the preselected region.
+		var region = this.q('.spc-region');
+		var selected = region.options[region.selectedIndex];
+		if (selected && selected.getAttribute('data-psh')) {
+			this.q('.spc-psh').value = selected.getAttribute('data-psh');
+		}
+	};
+
+	Calculator.prototype.bindEmail = function () {
+		var self = this;
+		var toggle = this.q('.spc-email-toggle');
+		var form = this.q('.spc-email-form');
+
+		if (!toggle || !form) {
+			return;
+		}
+
+		toggle.addEventListener('click', function () {
+			form.hidden = !form.hidden;
+			if (!form.hidden) {
+				self.q('.spc-email-input').focus();
+			}
+		});
+
+		form.addEventListener('submit', function (event) {
+			event.preventDefault();
+
+			var status = self.q('.spc-email-status');
+			var button = self.q('.spc-email-send');
+			var payload = new FormData();
+
+			payload.append('action', 'spc_email_results');
+			payload.append('nonce', DATA.nonce);
+			payload.append('email', self.q('.spc-email-input').value);
+			payload.append('name', self.q('.spc-email-name').value);
+			payload.append('items', JSON.stringify(self.items));
+			payload.append('config', JSON.stringify(self.serverConfig()));
+
+			button.disabled = true;
+			status.textContent = 'Sending...';
+			status.className = 'spc-email-status';
+
+			fetch(DATA.ajaxUrl, { method: 'POST', body: payload, credentials: 'same-origin' })
+				.then(function (response) {
+					return response.json();
+				})
+				.then(function (json) {
+					var ok = json && json.success;
+					status.textContent = (json && json.data && json.data.message) || (ok ? 'Sent.' : 'Something went wrong.');
+					status.className = 'spc-email-status ' + (ok ? 'is-ok' : 'is-error');
+					if (ok) {
+						form.reset();
+					}
+				})
+				.catch(function () {
+					status.textContent = 'Network error. Please try again.';
+					status.className = 'spc-email-status is-error';
+				})
+				.finally(function () {
+					button.disabled = false;
+				});
+		});
+	};
+
+	/**
+	 * Current system choices, in the shape the model expects.
+	 */
+	Calculator.prototype.config = function () {
+		return {
+			psh: parseFloat(this.q('.spc-psh').value) || 4.5,
+			autonomy: parseFloat(this.q('.spc-autonomy').value) || 1,
+			batteryType: this.q('.spc-battery-type').value,
+			voltage: this.q('.spc-voltage').value,
+			inverterType: this.q('.spc-inverter-type').value,
+			controller: this.q('.spc-controller').value,
+			panelWatts: parseFloat(this.q('.spc-panel').value) || 550,
+			batteryUnit: this.q('.spc-battery-unit').value,
+			simultaneity: (parseFloat(this.q('.spc-simultaneity').value) || 70) / 100
+		};
+	};
+
+	/**
+	 * Same choices, keyed the way the PHP endpoint reads them.
+	 */
+	Calculator.prototype.serverConfig = function () {
+		var c = this.config();
+		return {
+			psh: c.psh,
+			autonomy: c.autonomy,
+			battery_type: c.batteryType,
+			voltage: c.voltage,
+			inverter_type: c.inverterType,
+			controller: c.controller,
+			panel_watts: c.panelWatts,
+			battery_unit: c.batteryUnit,
+			simultaneity: c.simultaneity
+		};
+	};
+
+	/**
+	 * Draw the appliance picker for the current profile and search term.
+	 */
+	Calculator.prototype.renderLibrary = function (search) {
+		var self = this;
+		var term = (search || '').trim().toLowerCase();
+		var chosen = {};
+
+		this.items.forEach(function (item) {
+			chosen[item.id] = true;
+		});
+
+		var matches = DATA.appliances.filter(function (appliance) {
+			var inProfile = appliance.profiles.indexOf(self.profile) !== -1;
+			if (term) {
+				// A search looks across every profile, not just the active tab.
+				return appliance.name.toLowerCase().indexOf(term) !== -1;
+			}
+			return inProfile;
+		});
+
+		var groups = {};
+		var order = [];
+		matches.forEach(function (appliance) {
+			if (!groups[appliance.group]) {
+				groups[appliance.group] = [];
+				order.push(appliance.group);
+			}
+			groups[appliance.group].push(appliance);
+		});
+
+		var html = '';
+		if (!matches.length) {
+			html = '<p class="spc-no-match">No appliance matches "' + escapeHtml(term) + '". Add it as a custom appliance below.</p>';
+		}
+
+		order.forEach(function (group) {
+			html += '<div class="spc-group"><h5 class="spc-group-title">' + escapeHtml(group) + '</h5><div class="spc-chips">';
+			groups[group].forEach(function (appliance) {
+				var isChosen = !!chosen[appliance.id];
+				html += '<button type="button" class="spc-chip' + (isChosen ? ' is-chosen' : '') + '"'
+					+ ' data-id="' + escapeHtml(appliance.id) + '"'
+					+ ' aria-pressed="' + (isChosen ? 'true' : 'false') + '">'
+					+ '<span class="spc-chip-name">' + escapeHtml(appliance.name) + '</span>'
+					+ '<span class="spc-chip-watts">' + num(appliance.watts) + 'W'
+					+ (appliance.dc ? ' &middot; DC' : '') + '</span>'
+					+ '</button>';
+			});
+			html += '</div></div>';
+		});
+
+		var library = this.q('.spc-library');
+		library.innerHTML = html;
+
+		library.querySelectorAll('.spc-chip').forEach(function (chip) {
+			chip.addEventListener('click', function () {
+				self.toggleAppliance(chip.getAttribute('data-id'));
+			});
+		});
+	};
+
+	/**
+	 * Add an appliance to the load list, or take it back off.
+	 */
+	Calculator.prototype.toggleAppliance = function (id) {
+		var existing = -1;
+		this.items.forEach(function (item, index) {
+			if (item.id === id) {
+				existing = index;
+			}
+		});
+
+		if (existing > -1) {
+			this.items.splice(existing, 1);
+		} else {
+			var appliance = null;
+			DATA.appliances.forEach(function (candidate) {
+				if (candidate.id === id) {
+					appliance = candidate;
+				}
+			});
+			if (!appliance) {
+				return;
+			}
+			this.items.push({
+				id: appliance.id,
+				name: appliance.name,
+				watts: appliance.watts,
+				qty: 1,
+				hours: appliance.hours,
+				duty: appliance.duty,
+				surge: appliance.surge,
+				dc: !!appliance.dc
+			});
+		}
+
+		this.renderItems();
+		this.renderLibrary(this.q('.spc-search-input').value);
+		this.update();
+	};
+
+	/**
+	 * Add a load the library does not cover.
+	 */
+	Calculator.prototype.addCustom = function () {
+		var nameField = this.q('.spc-custom-name');
+		var wattsField = this.q('.spc-custom-watts');
+		var hoursField = this.q('.spc-custom-hours');
+		var error = this.q('.spc-custom-error');
+
+		var name = nameField.value.trim();
+		var watts = parseFloat(wattsField.value);
+		var hours = parseFloat(hoursField.value);
+
+		if (!name || !(watts > 0) || !(hours >= 0)) {
+			error.textContent = 'Give the appliance a name, its wattage and how many hours a day it runs.';
+			error.hidden = false;
+			return;
+		}
+
+		error.hidden = true;
+		this.customId++;
+
+		this.items.push({
+			id: 'custom-' + this.customId,
+			name: name,
+			watts: clamp(watts, 1, 50000),
+			qty: 1,
+			hours: clamp(hours, 0, 24),
+			duty: 1,
+			surge: 1,
+			dc: this.q('.spc-custom-dc').checked,
+			custom: true
+		});
+
+		nameField.value = '';
+		wattsField.value = '';
+		hoursField.value = '';
+		this.q('.spc-custom-dc').checked = false;
+		nameField.focus();
+
+		this.renderItems();
+		this.update();
+	};
+
+	/**
+	 * Draw the editable load list.
+	 */
+	Calculator.prototype.renderItems = function () {
+		var body = this.q('.spc-table tbody');
+		var table = this.q('.spc-table');
+		var empty = this.q('.spc-empty');
+		var clear = this.q('.spc-clear');
+
+		var hasItems = this.items.length > 0;
+		table.hidden = !hasItems;
+		empty.hidden = hasItems;
+		clear.hidden = !hasItems;
+		// Narrow screens scroll the table sideways, so the total gets its own
+		// line underneath where it stays visible. CSS decides which one shows.
+		this.q('.spc-total-mobile').hidden = !hasItems;
+
+		var html = '';
+		this.items.forEach(function (item, index) {
+			var wh = item.watts * item.qty * item.hours * (item.duty == null ? 1 : item.duty);
+			html += '<tr data-index="' + index + '">'
+				+ '<td class="spc-col-name">'
+				+ '<span class="spc-item-name">' + escapeHtml(item.name) + '</span>'
+				+ (item.dc ? '<span class="spc-tag">DC</span>' : '')
+				+ (item.duty < 1 ? '<span class="spc-tag spc-tag-muted" title="Thermostat controlled - runs about '
+					+ Math.round(item.duty * 100) + '% of the time">' + Math.round(item.duty * 100) + '% duty</span>' : '')
+				+ '</td>'
+				+ '<td class="spc-col-num"><input type="number" data-field="qty" min="0" max="999" step="1" value="' + item.qty + '" aria-label="Quantity of ' + escapeHtml(item.name) + '"></td>'
+				+ '<td class="spc-col-num"><input type="number" data-field="watts" min="0" max="50000" step="1" value="' + item.watts + '" aria-label="Watts for ' + escapeHtml(item.name) + '"></td>'
+				+ '<td class="spc-col-num"><input type="number" data-field="hours" min="0" max="24" step="0.25" value="' + item.hours + '" aria-label="Hours per day for ' + escapeHtml(item.name) + '"></td>'
+				+ '<td class="spc-col-num spc-item-wh">' + num(wh) + '</td>'
+				+ '<td class="spc-col-action"><button type="button" class="spc-remove" aria-label="Remove ' + escapeHtml(item.name) + '">&times;</button></td>'
+				+ '</tr>';
+		});
+
+		body.innerHTML = html;
+	};
+
+	/**
+	 * Recalculate and paint the results.
+	 */
+	Calculator.prototype.update = function () {
+		var self = this;
+		var results = calculate(this.items, this.config());
+		var hasLoad = results.dailyWh > 0;
+
+		this.qa('.spc-total-wh').forEach(function (node) {
+			node.textContent = num(results.dailyWh) + ' Wh';
+		});
+		this.q('.spc-results').hidden = !hasLoad;
+		this.q('.spc-results-empty').hidden = hasLoad;
+
+		// Keep the per-row energy figures in step with edited quantities.
+		this.qa('.spc-table tbody tr').forEach(function (row) {
+			var item = self.items[parseInt(row.getAttribute('data-index'), 10)];
+			if (item) {
+				var wh = item.watts * item.qty * item.hours * (item.duty == null ? 1 : item.duty);
+				row.querySelector('.spc-item-wh').textContent = num(wh);
+			}
+		});
+
+		if (!hasLoad) {
+			return;
+		}
+
+		var set = function (selector, value) {
+			self.qa(selector).forEach(function (node) {
+				node.textContent = value;
+			});
+		};
+
+		set('.spc-r-daily', num(results.dailyKwh, 2));
+		set('.spc-r-array', num(results.arrayInstalled));
+		set('.spc-r-bank', num(results.bankKwh, 1));
+
+		set('.spc-r-panel-qty', num(results.panelQty));
+		set('.spc-r-panel-size', num(results.panelWatts));
+		set('.spc-r-array-min', num(Math.ceil(results.arrayWatts)) + ' W');
+		set('.spc-r-array-installed', num(results.arrayInstalled) + ' W');
+		set('.spc-r-harvest', num(results.dailyHarvestWh) + ' Wh/day');
+		set('.spc-r-psh', num(results.psh, 1) + ' h');
+
+		set('.spc-r-batt-qty', num(results.batteryQty));
+		set('.spc-r-batt-unit', results.batteryUnit);
+		set('.spc-r-bank-ah', num(results.bankAh) + ' Ah @ ' + results.systemVoltage + 'V');
+		set('.spc-r-bank-kwh', num(results.bankKwh, 2) + ' kWh');
+		set('.spc-r-usable', num(results.usableKwh, 2) + ' kWh');
+		set('.spc-r-batt-config', results.batteryStrings > 1
+			? results.batterySeries + ' in series × ' + results.batteryStrings + ' parallel'
+			: results.batterySeries + ' in series');
+		set('.spc-r-backup', num(results.backupHours, 1) + ' h at average draw');
+
+		set('.spc-r-inverter', num(results.inverterRated));
+		set('.spc-r-running', num(results.runningW) + ' W');
+		set('.spc-r-surge', num(results.surgeW) + ' W');
+		set('.spc-r-va', num(results.inverterVa) + ' VA');
+		set('.spc-r-voltage', results.systemVoltage + 'V');
+		set('.spc-r-voltage-2', results.systemVoltage + 'V');
+
+		set('.spc-r-controller', num(results.controllerRated));
+		set('.spc-r-controller-type', results.controllerType);
+		set('.spc-r-controller-calc', num(results.controllerA, 1) + ' A');
+
+		set('.spc-r-annual', num(results.annualKwh) + ' kWh');
+		set('.spc-r-co2', num(results.co2SavedKg) + ' kg');
+		set('.spc-r-trees', num(results.treesEquivalent) + ' trees');
+		set('.spc-r-fuel', num(results.generatorLitres) + ' L');
+
+		if (S.showCosts && this.root.getAttribute('data-costs') === '1') {
+			set('.spc-r-cost-total', money(results.costTotal));
+			set('.spc-r-cost-pv', money(results.costPv));
+			set('.spc-r-cost-batt', money(results.costBattery));
+			set('.spc-r-cost-inv', money(results.costInverter));
+			set('.spc-r-cost-install', money(results.costInstall));
+		}
+
+		var warningBox = this.q('.spc-warnings');
+		var warningList = warningBox.querySelector('ul');
+		warningBox.hidden = results.warnings.length === 0;
+		warningList.innerHTML = results.warnings.map(function (warning) {
+			return '<li>' + escapeHtml(warning) + '</li>';
+		}).join('');
+	};
+
+	/* ------------------------------------------------------------- start */
+
+	function boot() {
+		Array.prototype.slice.call(document.querySelectorAll('.spc')).forEach(function (root) {
+			if (root.getAttribute('data-spc-ready')) {
+				return;
+			}
+			root.setAttribute('data-spc-ready', '1');
+			new Calculator(root);
+		});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', boot);
+	} else {
+		boot();
+	}
+
+	// Exposed so tools/test-parity.js can check this model against the PHP one.
+	// Harmless in the browser: WordPress never defines module.exports.
+	if (typeof module !== 'undefined' && module.exports) {
+		module.exports = { calculate: calculate };
+	}
+})();
+
+</script>
+</body>
+</html>
