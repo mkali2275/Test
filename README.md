@@ -240,6 +240,18 @@ preview/                         generated standalone preview
 
 ---
 
+## Visitor help content
+
+`docs/user-guide.html` is a ready-to-paste help section written for site visitors
+— how to use the calculator, how to read the results, an FAQ and a glossary.
+
+Add it in a **Custom HTML** block below the calculator, or on its own Help page.
+It has no JavaScript (the FAQ uses native `<details>` elements) and inherits the
+theme's fonts and text colour, so it matches whatever theme the site runs. All
+copy is plain HTML and meant to be edited.
+
+---
+
 ## Notes
 
 The results are planning estimates. They'll get you to the right size of system and

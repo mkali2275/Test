@@ -1,0 +1,428 @@
+<!--
+	Solar calculator - visitor help.
+
+	Paste this whole block into a WordPress "Custom HTML" block, underneath the
+	[solar_calculator] shortcode, or onto its own Help page.
+
+	The wording is yours to edit - it is plain HTML, so change any text between
+	the tags. The styles below are scoped to .spc-help and inherit your theme's
+	fonts and text colour, so it will match whatever theme you are running.
+
+	One thing to keep: the FAQ uses <details> elements, which give you
+	click-to-expand answers with no JavaScript. Leave those tags in place.
+-->
+
+<style>
+.spc-help {
+	--help-accent: #0f766e;      /* change to match your brand */
+	--help-line: currentColor;
+	max-width: 760px;
+	margin: 0 auto;
+	line-height: 1.65;
+	color: inherit;
+}
+.spc-help h2 {
+	margin: 2.2em 0 0.6em;
+	font-size: 1.5em;
+	line-height: 1.25;
+}
+.spc-help h2:first-child { margin-top: 0; }
+.spc-help h3 {
+	margin: 1.6em 0 0.4em;
+	font-size: 1.12em;
+}
+.spc-help p, .spc-help li { margin: 0 0 0.9em; }
+.spc-help ul, .spc-help ol { padding-left: 1.3em; }
+
+/* Numbered steps */
+.spc-help-steps { list-style: none; padding: 0; margin: 1.2em 0; counter-reset: help-step; }
+.spc-help-steps > li {
+	position: relative;
+	counter-increment: help-step;
+	padding: 0 0 0.2em 3em;
+	margin-bottom: 1.4em;
+}
+.spc-help-steps > li::before {
+	content: counter(help-step);
+	position: absolute;
+	left: 0;
+	top: 0.1em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2em;
+	height: 2em;
+	border-radius: 50%;
+	background: var(--help-accent);
+	color: #fff;
+	font-size: 0.85em;
+	font-weight: 700;
+}
+.spc-help-steps h3 { margin: 0 0 0.3em; }
+
+/* Callout */
+.spc-help-note {
+	margin: 1.4em 0;
+	padding: 0.9em 1.2em;
+	border-left: 4px solid var(--help-accent);
+	background: rgba(127, 127, 127, 0.09);
+	border-radius: 0 8px 8px 0;
+}
+.spc-help-note p:last-child { margin-bottom: 0; }
+.spc-help-note strong { display: block; margin-bottom: 0.2em; }
+
+/* FAQ */
+.spc-help details {
+	border-bottom: 1px solid rgba(127, 127, 127, 0.28);
+	padding: 0.85em 0;
+}
+.spc-help details:first-of-type { border-top: 1px solid rgba(127, 127, 127, 0.28); }
+.spc-help summary {
+	cursor: pointer;
+	font-weight: 600;
+	list-style: none;
+	padding-right: 1.6em;
+	position: relative;
+}
+.spc-help summary::-webkit-details-marker { display: none; }
+.spc-help summary::after {
+	content: "+";
+	position: absolute;
+	right: 0;
+	top: -0.05em;
+	font-size: 1.25em;
+	font-weight: 400;
+	opacity: 0.6;
+}
+.spc-help details[open] summary::after { content: "\2212"; }
+.spc-help details > *:not(summary) { margin-top: 0.7em; }
+.spc-help details p:last-child { margin-bottom: 0; }
+
+/* Glossary */
+.spc-help-glossary { margin: 1.2em 0; }
+.spc-help-glossary > div {
+	padding: 0.7em 0;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.22);
+}
+.spc-help-glossary dt { font-weight: 700; margin-bottom: 0.15em; }
+.spc-help-glossary dd { margin: 0; opacity: 0.85; }
+
+.spc-help-quiet { opacity: 0.75; font-size: 0.92em; }
+
+@media (max-width: 600px) {
+	.spc-help-steps > li { padding-left: 2.6em; }
+}
+</style>
+
+<div class="spc-help">
+
+	<h2>How to use the solar calculator</h2>
+
+	<p>
+		The calculator works out what size of solar system you need by looking at
+		what you actually want to run and for how long. You do not need to know
+		anything about solar to use it — you just need a rough idea of your
+		appliances.
+	</p>
+
+	<p class="spc-help-quiet">It takes about two minutes.</p>
+
+	<ol class="spc-help-steps">
+		<li>
+			<h3>Say where the system is going</h3>
+			<p>
+				Choose <strong>Home</strong>, <strong>Office</strong> or
+				<strong>Travel / RV</strong>. This just changes which appliances
+				are offered first — the search box finds anything from any of the
+				three, so pick whichever is closest.
+			</p>
+		</li>
+		<li>
+			<h3>Tap the appliances you need to run</h3>
+			<p>
+				Tap an appliance to add it to your list; tap it again to take it
+				off. Each one you add appears in <em>Your load list</em>, where you
+				can change how many you have, how many watts each one draws, and
+				how many hours a day it runs.
+			</p>
+			<p>
+				If something is missing, open <em>Add an appliance that isn't
+				listed</em> and enter it yourself.
+			</p>
+		</li>
+		<li>
+			<h3>Set your location and equipment</h3>
+			<p>
+				Pick the region closest to you — this sets how much sun your panels
+				can expect. Then choose how many days of backup you want and what
+				kind of batteries you plan to buy.
+			</p>
+		</li>
+		<li>
+			<h3>Read your system</h3>
+			<p>
+				The results update as you go. They tell you how many panels, how
+				many batteries, and what size of inverter and charge controller you
+				need. Use <em>Print / save as PDF</em> to keep a copy or take it to
+				a supplier.
+			</p>
+		</li>
+	</ol>
+
+	<h2>Getting the numbers right</h2>
+
+	<h3>Where do I find an appliance's wattage?</h3>
+	<p>
+		Look for a sticker or metal plate on the back or underside of the
+		appliance, or inside the door. You want the number followed by
+		<strong>W</strong> (watts). If it only shows amps and volts, multiply them
+		together: 2A × 230V = 460W.
+	</p>
+	<p>
+		If you cannot find it, leave the figure the calculator suggests. Those are
+		typical values for that kind of appliance and are close enough for
+		planning.
+	</p>
+
+	<h3>Be honest about the hours</h3>
+	<p>
+		This is where most people go wrong. Hours per day means the time the
+		appliance is actually switched on and working, averaged across a normal
+		day. A TV that is on all evening is about 5 hours, not 24.
+	</p>
+
+	<h3>Don't forget the things that never switch off</h3>
+	<p>
+		Routers, decoders, CCTV cameras and standby lights each draw very little,
+		but they draw it for 24 hours a day. Together they often add up to more
+		than an appliance you use for an hour. Add them.
+	</p>
+
+	<div class="spc-help-note">
+		<strong>Fridges and freezers are a special case</strong>
+		<p>
+			Leave the hours at 24. A fridge is plugged in all day, but its
+			compressor only runs about a third of the time — the calculator already
+			accounts for this, which is what the small <em>35% duty</em> label on
+			the row means. If you reduce the hours yourself you will undersize the
+			system.
+		</p>
+	</div>
+
+	<h3>Watch out for anything that makes heat or cold</h3>
+	<p>
+		Kettles, irons, heaters, ovens, hair dryers and air conditioners use far
+		more power than everything else combined. Adding a single 1,500W kettle can
+		double the size of a small system. They are still worth including if you
+		genuinely need them — just expect the numbers to jump.
+	</p>
+
+	<h2>Understanding your results</h2>
+
+	<h3>The three big numbers</h3>
+	<ul>
+		<li><strong>kWh per day</strong> — how much energy your appliances use in a day. This drives everything else.</li>
+		<li><strong>Watts of panels</strong> — the total size of the solar array you need on the roof.</li>
+		<li><strong>kWh of battery</strong> — how much storage you need to get through the night and cloudy spells.</li>
+	</ul>
+
+	<h3>Solar array</h3>
+	<p>
+		<strong>Minimum array</strong> is the calculated requirement;
+		<strong>installed</strong> is what you actually get once you round up to
+		whole panels. <strong>Expected harvest</strong> is roughly how much energy
+		those panels will collect on an average day.
+	</p>
+
+	<h3>Battery bank</h3>
+	<p>
+		<strong>Nameplate energy</strong> is what the batteries are sold as.
+		<strong>Usable energy</strong> is what you can safely take out of them.
+		Those differ because draining a battery flat every day destroys it — the
+		calculator sizes the bank so the usable figure covers your needs. The
+		<strong>wiring</strong> line tells you how to connect them.
+	</p>
+
+	<h3>Inverter</h3>
+	<p>
+		The inverter turns battery power into normal mains power. The main figure
+		is what it must supply continuously. <strong>Startup surge</strong> is the
+		brief spike when a motor kicks in — fridges, pumps and air conditioners
+		pull two to three times their normal draw for a second or two, and your
+		inverter has to survive that.
+	</p>
+	<p class="spc-help-quiet">
+		If nothing you listed runs on mains power, the inverter shows zero — you do
+		not need one.
+	</p>
+
+	<h3>Charge controller</h3>
+	<p>
+		This sits between the panels and the batteries and controls the charging.
+		The number is the current rating you need, in amps.
+	</p>
+
+	<h3>Worth knowing</h3>
+	<p>
+		If a yellow-bordered box appears below the results, read it. It flags
+		practical problems with the system you have just described — cable sizes
+		that will be awkward, a surge your inverter may not handle, or an array too
+		small to recharge the bank in a day.
+	</p>
+
+	<h2>Common questions</h2>
+
+	<details>
+		<summary>Why does it need more panels than my daily usage suggests?</summary>
+		<p>
+			Because nothing in the chain is perfect. Panels lose output to heat,
+			dust and wiring; the charge controller loses a little more; and storing
+			energy in a battery and taking it back out loses some too. The
+			calculator adds roughly 30% to cover all of that. A system sized without
+			that margin runs flat within a week.
+		</p>
+	</details>
+
+	<details>
+		<summary>Why did it choose 24V or 48V instead of 12V?</summary>
+		<p>
+			Higher voltage means less current for the same amount of power, and less
+			current means thinner, cheaper, safer cable. Once your load gets past a
+			certain size, staying at 12V would need very heavy cable and would waste
+			a lot of energy as heat. You can force a particular voltage under
+			<em>Advanced options</em> if your equipment requires it.
+		</p>
+	</details>
+
+	<details>
+		<summary>Which battery type should I choose?</summary>
+		<p>
+			<strong>Lithium (LiFePO4)</strong> costs more up front but you can use
+			80% of its capacity and it lasts several times longer, so it is usually
+			cheaper over its life and needs a smaller bank for the same job.
+		</p>
+		<p>
+			<strong>Lead-acid</strong> types — tubular, AGM, flooded — are cheaper to
+			buy but you can only use about half of their capacity, so you need
+			roughly a 60% bigger bank, and they need replacing sooner. Flooded
+			batteries also need topping up with water.
+		</p>
+	</details>
+
+	<details>
+		<summary>How many days of backup do I need?</summary>
+		<p>
+			One day is fine if you have grid power or a generator to fall back on.
+			Choose two or three if the system is your only source of power, or if
+			you get long overcast spells. More days means more batteries, which is
+			the most expensive part of the system — so do not choose three unless
+			you need it.
+		</p>
+	</details>
+
+	<details>
+		<summary>Can I run an air conditioner on solar?</summary>
+		<p>
+			Yes, but it will dominate the system. Add one and watch the numbers — an
+			inverter-type AC uses roughly half the power of a standard one and is
+			much kinder to a solar setup. If the result is more than you want to
+			spend, running the AC only in the evening, or cooling one room instead of
+			the whole house, makes a large difference.
+		</p>
+	</details>
+
+	<details>
+		<summary>What does the DC checkbox mean?</summary>
+		<p>
+			Most appliances run on mains power (AC). Some — mainly in vans, boats and
+			off-grid cabins — run directly on 12V or 24V (DC) instead. DC appliances
+			skip the inverter entirely, so they waste less energy. Only tick the box
+			if you know the appliance runs directly off the battery.
+		</p>
+	</details>
+
+	<details>
+		<summary>How accurate is the price estimate?</summary>
+		<p>
+			It is a guide to the order of magnitude, not a quote. Equipment prices
+			vary a lot by brand, quality and where you buy. Use it to know whether
+			you are looking at a few hundred or several thousand, then get real
+			quotes.
+		</p>
+	</details>
+
+	<details>
+		<summary>Can I save or share my results?</summary>
+		<p>
+			Yes — use the <strong>Print / save as PDF</strong> button. In the print
+			dialogue choose "Save as PDF" as the destination. The controls are
+			removed automatically, so you get a clean summary of your load list and
+			system.
+		</p>
+	</details>
+
+	<details>
+		<summary>Is anything I enter saved or sent anywhere?</summary>
+		<p>
+			No. Everything is worked out inside your own browser and nothing is
+			stored. If you close the page, your list is gone — so print or save it
+			if you want to keep it.
+		</p>
+	</details>
+
+	<h2>Glossary</h2>
+
+	<dl class="spc-help-glossary">
+		<div>
+			<dt>Watt (W)</dt>
+			<dd>How fast an appliance uses power while it is running.</dd>
+		</div>
+		<div>
+			<dt>Watt-hour (Wh) and kilowatt-hour (kWh)</dt>
+			<dd>How much energy is used over time. A 100W bulb left on for 10 hours uses 1,000Wh, which is 1kWh. This is the unit your electricity bill uses.</dd>
+		</div>
+		<div>
+			<dt>Peak sun hours</dt>
+			<dd>Not daylight hours. It is the number of hours per day your panels would produce at their full rating — typically 3 to 6, depending on where you live.</dd>
+		</div>
+		<div>
+			<dt>Duty cycle</dt>
+			<dd>The share of the time a thermostat-controlled appliance is actually drawing power. A fridge is on all day but its compressor runs perhaps a third of it.</dd>
+		</div>
+		<div>
+			<dt>Depth of discharge</dt>
+			<dd>How much of a battery's capacity you can safely use. Lithium about 80%, lead-acid about 50%.</dd>
+		</div>
+		<div>
+			<dt>Surge</dt>
+			<dd>The brief spike in power when a motor starts. Fridges, pumps and air conditioners can draw three times their normal watts for a second or two.</dd>
+		</div>
+		<div>
+			<dt>MPPT and PWM</dt>
+			<dd>Two kinds of charge controller. MPPT extracts noticeably more energy from the same panels and is worth the extra cost on anything but the smallest systems.</dd>
+		</div>
+		<div>
+			<dt>Pure sine wave</dt>
+			<dd>The type of inverter that produces clean mains power. Modified sine wave is cheaper but can hum, run motors hot, and upset sensitive electronics and some medical devices.</dd>
+		</div>
+		<div>
+			<dt>AC and DC</dt>
+			<dd>AC is normal mains power from a wall socket. DC is what batteries and panels produce. The inverter converts DC to AC.</dd>
+		</div>
+	</dl>
+
+	<h2>Before you buy</h2>
+
+	<p>
+		These results will get you to the right size of system and a realistic
+		budget — enough to talk to suppliers without being sold something twice as
+		big as you need.
+	</p>
+	<p>
+		They are not an installation design. Cable sizes, fusing, earthing, panel
+		mounting and battery ventilation all need a qualified installer, and
+		getting those wrong is a fire risk rather than an inconvenience. Take your
+		printout to a professional and have them confirm it.
+	</p>
+
+</div>
