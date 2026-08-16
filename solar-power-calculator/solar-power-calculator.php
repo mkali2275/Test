@@ -3,7 +3,7 @@
  * Plugin Name:       Solar Power Calculator
  * Plugin URI:        https://sustainaportal.com/
  * Description:       Off-grid solar sizing calculator. Visitors pick the appliances they need to run at home, in the office or while travelling, and get the panel wattage, battery bank, inverter and charge controller sizes to run them. Add it to any page with [solar_calculator].
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 5.6
  * Requires PHP:      7.2
  * Author:            SustainaPortal
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SPC_VERSION', '1.0.0' );
+define( 'SPC_VERSION', '1.0.1' );
 define( 'SPC_FILE', __FILE__ );
 define( 'SPC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SPC_URL', plugin_dir_url( __FILE__ ) );

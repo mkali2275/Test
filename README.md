@@ -56,6 +56,7 @@ Plugin**. WordPress will offer to replace the existing copy.
 | `title`    | `Solar System Sizing Calculator`    | Heading above the calculator. Pass `title=""` to hide it. |
 | `subtitle` | *(short explainer)*                 | Line under the heading. `subtitle=""` hides it. |
 | `costs`    | *(follows the global setting)*      | `yes` or `no` to force the budget card on or off for one page. |
+| `theme`    | `auto`                              | `auto`, `light` or `dark`. Auto matches the page's own background. |
 
 Examples:
 
@@ -189,10 +190,26 @@ php tools/build-preview.php
 # Check the browser engine agrees with the PHP engine
 node tools/test-parity.js
 
+# Check form contrast inside simulated light and dark themes
+node tools/test-theme.js
+
 # Drive the preview in a real browser
 npm install playwright --no-save
 node tools/test-ui.js
 ```
+
+### Theming
+
+The calculator measures the background colour of the page it lands on and stamps
+`data-theme="light"` or `"dark"` onto its root element. It deliberately ignores
+the visitor's `prefers-color-scheme` setting, because most WordPress themes ignore
+it too — honouring it made the calculator go dark inside a light theme, leaving the
+theme's dark text on dark input boxes. Pin it with `theme="light"` or
+`theme="dark"` if the measurement ever guesses wrong.
+
+Form controls state their colour and background together, with raised specificity,
+so a theme cannot set one half of the pair and leave text the same colour as its
+box. That is what `tools/test-theme.js` guards.
 
 `tools/scenarios.json` holds the sizing test cases — add one whenever you touch the
 model. Both test scripts exit non-zero on failure.

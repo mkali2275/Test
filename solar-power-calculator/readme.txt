@@ -4,7 +4,7 @@ Tags: solar, calculator, off-grid, battery, energy
 Requires at least: 5.6
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,7 @@ controller current. Results update as they type.
 * `profile` — `home`, `office` or `travel`. Which tab opens first.
 * `title` / `subtitle` — set your own, or pass an empty string to hide.
 * `costs` — `yes` or `no`, to override the budget card on a single page.
+* `theme` — `auto` (default), `light` or `dark`. Auto matches the page's background.
 
 **For developers**
 
@@ -95,6 +96,12 @@ feature, and even then results are emailed rather than stored.
 1. The calculator with a home load list and its sizing results.
 
 == Changelog ==
+
+= 1.0.1 =
+* Fixed unreadable form text on themes that do not follow the device's dark mode setting. The palette now follows the page's own background colour instead of the visitor's device preference, and the calculator's own text and background colours are stated together so a theme cannot set one without the other.
+* Added a `theme` shortcode attribute (`auto`, `light`, `dark`) to override the detected palette.
+* Form controls now use a minimum 16px font on mobile so iOS stops zooming the page when a field is focused.
+* Draw an explicit dropdown arrow, for themes that remove the native one.
 
 = 1.0.0 =
 * First release.

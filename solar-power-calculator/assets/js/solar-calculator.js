@@ -53,6 +53,78 @@
 		return C.battery_units[2];
 	}
 
+	/**
+	 * Decide whether the calculator sits on a light or a dark page.
+	 *
+	 * Walks up from the calculator looking for the first ancestor that actually
+	 * paints a background, and measures how bright it is. This is checked
+	 * against the page rather than the device's dark-mode preference, because
+	 * most WordPress themes ignore that preference — trusting it turned the
+	 * calculator dark inside a light theme, leaving the theme's dark text
+	 * sitting on dark input boxes.
+	 *
+	 * @param {Element} root The .spc element.
+	 * @return {string} 'dark' or 'light'.
+	 */
+	function detectTheme(root) {
+		// Start at the parent: .spc paints its own background from the palette
+		// we are trying to choose, so measuring itself would be circular.
+		var node = root.parentElement;
+
+		while (node) {
+			var background = window.getComputedStyle(node).backgroundColor;
+			var rgb = parseColor(background);
+
+			// Skip transparent ancestors - they show whatever is behind them.
+			if (rgb && rgb.a > 0.1) {
+				return luminance(rgb) < 0.5 ? 'dark' : 'light';
+			}
+			node = node.parentElement;
+		}
+
+		// Nothing in the chain paints a background: assume a white page, which
+		// is what a browser renders by default.
+		return 'light';
+	}
+
+	/**
+	 * Parse an rgb()/rgba() colour as returned by getComputedStyle.
+	 *
+	 * @param {string} value Computed colour.
+	 * @return {Object|null} {r, g, b, a} or null when unparseable.
+	 */
+	function parseColor(value) {
+		var match = /^rgba?\(([^)]+)\)$/.exec((value || '').trim());
+		if (!match) {
+			return null;
+		}
+
+		var parts = match[1].split(/[,\s/]+/).filter(function (part) {
+			return part !== '';
+		}).map(parseFloat);
+
+		if (parts.length < 3 || parts.some(isNaN)) {
+			return null;
+		}
+
+		return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
+	}
+
+	/**
+	 * Relative luminance, 0 (black) to 1 (white).
+	 *
+	 * @param {Object} rgb Colour channels.
+	 * @return {number}
+	 */
+	function luminance(rgb) {
+		var channels = [rgb.r, rgb.g, rgb.b].map(function (channel) {
+			var c = channel / 255;
+			return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+		});
+
+		return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+	}
+
 	function escapeHtml(text) {
 		var div = document.createElement('div');
 		div.textContent = text == null ? '' : String(text);
@@ -279,6 +351,20 @@
 		this.qa = function (selector) {
 			return Array.prototype.slice.call(root.querySelectorAll(selector));
 		};
+
+		// Match the surrounding page unless the shortcode pinned a theme.
+		if (!root.hasAttribute('data-theme')) {
+			var applyTheme = function () {
+				root.setAttribute('data-theme', detectTheme(root));
+			};
+			applyTheme();
+			// Caching and optimisation plugins often load the theme's CSS
+			// asynchronously, so the page can still be unstyled at this point.
+			// Measure again once everything has arrived.
+			if (document.readyState !== 'complete') {
+				window.addEventListener('load', applyTheme, { once: true });
+			}
+		}
 
 		this.bind();
 		this.renderLibrary();

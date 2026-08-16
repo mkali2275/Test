@@ -39,6 +39,7 @@ class SPC_Shortcode {
 				'title'    => 'Solar System Sizing Calculator',
 				'subtitle' => 'Pick what you need to run and get the panel, battery and inverter sizes to run it.',
 				'costs'    => '',       // "yes" / "no" overrides the global setting
+				'theme'    => 'auto',   // auto | light | dark
 			),
 			$atts,
 			'solar_calculator'
@@ -58,6 +59,13 @@ class SPC_Shortcode {
 		} elseif ( 'yes' === strtolower( $atts['costs'] ) ) {
 			$show_costs = true;
 		}
+
+		// "auto" leaves the attribute off so the script can measure the page it
+		// landed on; light/dark pin it and the script leaves it alone.
+		$theme      = strtolower( $atts['theme'] );
+		$theme_attr = in_array( $theme, array( 'light', 'dark' ), true )
+			? ' data-theme="' . esc_attr( $theme ) . '"'
+			: '';
 
 		self::$instance++;
 		$uid = 'spc-' . self::$instance;
@@ -89,7 +97,7 @@ class SPC_Shortcode {
 
 		ob_start();
 		?>
-		<div class="spc" id="<?php echo esc_attr( $uid ); ?>" data-profile="<?php echo esc_attr( $profile ); ?>" data-costs="<?php echo $show_costs ? '1' : '0'; ?>">
+		<div class="spc" id="<?php echo esc_attr( $uid ); ?>" data-profile="<?php echo esc_attr( $profile ); ?>" data-costs="<?php echo $show_costs ? '1' : '0'; ?>"<?php echo $theme_attr; // phpcs:ignore WordPress.Security.EscapeOutput -- built from a whitelist above. ?>>
 
 			<?php if ( $atts['title'] ) : ?>
 				<header class="spc-header">

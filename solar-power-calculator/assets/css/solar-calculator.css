@@ -35,17 +35,74 @@
 	box-sizing: inherit;
 }
 
-@media (prefers-color-scheme: dark) {
-	.spc:not([data-theme="light"]) {
-		--spc-accent: #2dd4bf;
-		--spc-accent-soft: #134e4a;
-		--spc-accent-ink: #99f6e4;
-		--spc-ink: #e8eef3;
-		--spc-muted: #9aa8b5;
-		--spc-line: #2c3742;
-		--spc-bg: #131a21;
-		--spc-panel: #1a232c;
-	}
+/* Form controls state their text and background colour together, and insist.
+   Themes routinely restyle inputs, and when a theme sets one of the pair while
+   the calculator sets the other the result is text the same colour as its box.
+   -webkit-text-fill-color is needed as well: iOS Safari honours it over color.
+   The class is doubled (.spc.spc) purely to raise specificity above the
+   theme rules these have to beat. */
+.spc.spc input[type="text"],
+.spc.spc input[type="number"],
+.spc.spc input[type="email"],
+.spc.spc input[type="search"],
+.spc.spc select,
+.spc.spc textarea {
+	background-color: var(--spc-bg) !important;
+	color: var(--spc-ink) !important;
+	-webkit-text-fill-color: var(--spc-ink) !important;
+	border-color: var(--spc-line);
+	opacity: 1;
+	font-family: inherit;
+	/* iOS shrinks the page when a focused field is under 16px. */
+	font-size: max(16px, 0.94rem);
+}
+
+.spc.spc input::placeholder,
+.spc.spc textarea::placeholder {
+	color: var(--spc-muted) !important;
+	-webkit-text-fill-color: var(--spc-muted) !important;
+	opacity: 1;
+}
+
+/* Some themes hide the native select arrow without drawing a replacement. */
+.spc select {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	padding-right: 34px;
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 8" fill="none" stroke="%23616e7c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5 6 6.5l5-5"/></svg>');
+	background-repeat: no-repeat;
+	background-position: right 12px center;
+	background-size: 11px;
+}
+
+.spc[data-theme="dark"] select {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 8" fill="none" stroke="%239aa8b5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5 6 6.5l5-5"/></svg>');
+}
+
+/* Chips are buttons, so they need the same treatment against theme resets. */
+.spc .spc-chip,
+.spc .spc-profile {
+	-webkit-appearance: none;
+	appearance: none;
+	text-transform: none;
+	letter-spacing: normal;
+}
+
+/* The dark palette is applied from the page's own background colour, which the
+   script measures and stamps onto .spc as data-theme. It deliberately does NOT
+   key off prefers-color-scheme: most WordPress themes ignore the device
+   setting, so honouring it here turned the calculator dark inside a light
+   theme and left the theme's dark text on dark inputs. */
+.spc[data-theme="dark"] {
+	--spc-accent: #2dd4bf;
+	--spc-accent-soft: #134e4a;
+	--spc-accent-ink: #99f6e4;
+	--spc-ink: #e8eef3;
+	--spc-muted: #9aa8b5;
+	--spc-line: #2c3742;
+	--spc-bg: #131a21;
+	--spc-panel: #1a232c;
 }
 
 /* ------------------------------------------------------------- header */
@@ -104,10 +161,8 @@
 	font-weight: 700;
 }
 
-@media (prefers-color-scheme: dark) {
-	.spc:not([data-theme="light"]) .spc-step-num {
-		color: #06231f;
-	}
+.spc[data-theme="dark"] .spc-step-num {
+	color: #06231f;
 }
 
 /* ----------------------------------------------------------- profiles */
@@ -201,7 +256,7 @@
 	padding: 10px 12px;
 	border: 1px solid var(--spc-line);
 	border-radius: 8px;
-	background: var(--spc-bg);
+	background-color: var(--spc-bg);
 	color: var(--spc-ink);
 	font: inherit;
 }
@@ -345,7 +400,7 @@
 	padding: 6px 8px;
 	border: 1px solid var(--spc-line);
 	border-radius: 6px;
-	background: var(--spc-bg);
+	background-color: var(--spc-bg);
 	color: var(--spc-ink);
 	font: inherit;
 	font-size: 0.9rem;
@@ -448,7 +503,7 @@
 	padding: 8px 10px;
 	border: 1px solid var(--spc-line);
 	border-radius: 6px;
-	background: var(--spc-bg);
+	background-color: var(--spc-bg);
 	color: var(--spc-ink);
 	font: inherit;
 	font-size: 0.92rem;
@@ -504,7 +559,7 @@
 	padding: 9px 10px;
 	border: 1px solid var(--spc-line);
 	border-radius: 8px;
-	background: var(--spc-bg);
+	background-color: var(--spc-bg);
 	color: var(--spc-ink);
 	font: inherit;
 	font-size: 0.94rem;
