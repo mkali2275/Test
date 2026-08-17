@@ -146,7 +146,16 @@
 		var controllerEff = C.controller_efficiency[config.controller] || C.controller_efficiency.mppt;
 
 		var psh = Math.max(0.5, config.psh);
-		var autonomy = Math.max(0.5, config.autonomy);
+
+		// Backup in hours so intermittent-mains setups can ask for "cover the
+		// 10-hour outage". The older autonomy-in-days input still works.
+		var backupHours = config.backupHours != null
+			? clamp(config.backupHours, 1, 168)
+			: Math.max(0.5, config.autonomy) * 24;
+
+		var gridHours = clamp(config.gridHours || 0, 0, 24);
+		var gridCharges = gridHours > 0 && !!config.gridCharges;
+		var solarShare = clamp(config.solarShare == null ? 1 : config.solarShare, 0.05, 1);
 
 		/* 1. Daily energy */
 		var acWh = 0;
@@ -186,10 +195,14 @@
 		// AC loads pay the inverter conversion penalty; DC loads do not.
 		var batteryDrawWh = (inverterEff > 0 ? acWh / inverterEff : 0) + dcWh;
 
-		/* 2. Solar array - independent of system voltage, so it comes first */
+		/* 2. Solar array - independent of system voltage, so it comes first.
+		 * Only covers the share of the load the owner wants from solar; mains
+		 * carries the rest where it is available.
+		 */
+		var solarDrawWh = batteryDrawWh * solarShare;
 		var systemEfficiency = controllerEff * C.array_derate * battery.efficiency;
-		var arrayWatts = batteryDrawWh > 0 && systemEfficiency > 0
-			? batteryDrawWh / (psh * systemEfficiency)
+		var arrayWatts = solarDrawWh > 0 && systemEfficiency > 0
+			? solarDrawWh / (psh * systemEfficiency)
 			: 0;
 		var panelWatts = Math.max(10, config.panelWatts);
 		var panelQty = arrayWatts > 0 ? Math.ceil(arrayWatts / panelWatts) : 0;
@@ -214,7 +227,7 @@
 
 		/* 4. Battery bank */
 		var bankWh = batteryDrawWh > 0
-			? (batteryDrawWh * autonomy) / (battery.dod * battery.efficiency)
+			? (batteryDrawWh * (backupHours / 24)) / (battery.dod * battery.efficiency)
 			: 0;
 		var bankAh = systemVoltage > 0 ? bankWh / systemVoltage : 0;
 		var usableKwh = (bankWh * battery.dod) / 1000;
@@ -240,13 +253,46 @@
 			: 0;
 		var controllerRated = controllerA > 0 ? roundUpTo(controllerA, C.controller_sizes) : 0;
 
-		/* 7. Runtime with no sun */
-		var backupHours = batteryDrawWh > 0
+		/* 7. Runtime with no sun and no mains */
+		var runtimeHours = batteryDrawWh > 0
 			? (bankWh * battery.dod) / (batteryDrawWh / 24)
 			: 0;
 
-		/* 8. Cost and impact */
+		/* 8. Charging from mains
+		 * Where mains or a generator runs for part of the day it can refill the
+		 * bank as well as carry the load. The question is whether the window is
+		 * long enough to do it at a rate the chemistry accepts.
+		 */
+		var usableWh = bankWh * battery.dod;
+		var chargerANeeded = 0;
+		var chargerASafe = 0;
+		var chargerARated = 0;
+		var refillHours = 0;
+		var gridDailyWh = 0;
+		var solarDailyWh = dailyWh;
+
+		if (gridHours > 0) {
+			gridDailyWh = dailyWh * (1 - solarShare);
+			solarDailyWh = dailyWh * solarShare;
+		}
+
+		if (gridCharges && usableWh > 0 && systemVoltage > 0) {
+			chargerANeeded = usableWh / (gridHours * C.charger_efficiency * systemVoltage);
+			chargerASafe = bankAh * battery.max_charge_c;
+			// Never recommend a charger the batteries cannot absorb.
+			chargerARated = Math.min(
+				roundUpTo(Math.min(chargerANeeded, chargerASafe), C.controller_sizes),
+				chargerASafe
+			);
+			if (chargerARated > 0) {
+				refillHours = usableWh / (chargerARated * systemVoltage * C.charger_efficiency);
+			}
+		}
+
+		/* 9. Cost and impact */
 		var annualKwh = (dailyWh * 365) / 1000;
+		// Only the solar share displaces grid or generator energy.
+		var annualSolarKwh = (solarDailyWh * 365) / 1000;
 		var costPv = arrayInstalled * S.costPvWatt;
 		var costBattery = (bankWh / 1000) * battery.cost_kwh;
 		var costInverter = (inverterRated / 1000) * S.costInverterKw;
@@ -257,13 +303,20 @@
 			dailyWh: dailyWh,
 			dailyKwh: dailyWh / 1000,
 			annualKwh: annualKwh,
+			annualSolarKwh: annualSolarKwh,
+			solarDailyWh: solarDailyWh,
+			gridDailyWh: gridDailyWh,
+			solarShare: solarShare,
 			batteryDrawWh: batteryDrawWh,
 			runningW: runningW,
 			surgeW: surgeW,
 
 			systemVoltage: systemVoltage,
 			psh: psh,
-			autonomy: autonomy,
+			backupHours: backupHours,
+			autonomy: backupHours / 24,
+			gridHours: gridHours,
+			gridCharges: gridCharges,
 
 			arrayWatts: arrayWatts,
 			arrayInstalled: arrayInstalled,
@@ -280,7 +333,13 @@
 			batterySeries: series,
 			batteryStrings: strings,
 			batteryQty: batteryQty,
-			backupHours: backupHours,
+			runtimeHours: runtimeHours,
+
+			chargerANeeded: chargerANeeded,
+			chargerASafe: chargerASafe,
+			chargerARated: chargerARated,
+			chargerWatts: chargerARated * systemVoltage,
+			refillHours: refillHours,
 
 			inverterW: inverterW,
 			inverterRated: inverterRated,
@@ -296,9 +355,9 @@
 			costInstall: costInstall,
 			costTotal: costHardware + costInstall,
 
-			co2SavedKg: annualKwh * C.co2_per_kwh,
-			treesEquivalent: C.co2_per_tree_year > 0 ? (annualKwh * C.co2_per_kwh) / C.co2_per_tree_year : 0,
-			generatorLitres: annualKwh * C.generator_l_per_kwh
+			co2SavedKg: annualSolarKwh * C.co2_per_kwh,
+			treesEquivalent: C.co2_per_tree_year > 0 ? (annualSolarKwh * C.co2_per_kwh) / C.co2_per_tree_year : 0,
+			generatorLitres: annualSolarKwh * C.generator_l_per_kwh
 		};
 
 		results.warnings = warnings(results, config);
@@ -328,8 +387,20 @@
 		if (config.controller === 'pwm' && r.arrayInstalled > 800) {
 			list.push('PWM controllers waste 15-20% of the harvest on arrays this size. MPPT pays for itself here.');
 		}
-		if (r.autonomy < 2) {
-			list.push('Sized for ' + r.autonomy + ' day of autonomy. Add a day if you get long overcast spells and have no generator or grid backup.');
+		if (r.gridHours === 0 && r.backupHours < 24) {
+			list.push('The battery is sized for only ' + Math.round(r.backupHours) + ' hours and you have no mains or generator to fall back on. Consider a full day.');
+		}
+		// The heart of an intermittent-mains system: a short window may not be
+		// long enough to put the energy back at a safe charge rate.
+		if (r.gridCharges && r.refillHours > r.gridHours) {
+			list.push('Your ' + Math.round(r.gridHours) + ' hours of mains is not long enough to fully recharge this bank — a safe charge rate needs about '
+				+ Math.round(r.refillHours) + ' hours. Expect to start some days part-charged, so lean on solar for the difference or fit a smaller bank.');
+		}
+		if (r.gridHours > 0 && !r.gridCharges) {
+			list.push('Mains is available but is not charging the batteries, so solar has to do all the recharging. A hybrid inverter/charger would let the mains share the work.');
+		}
+		if (r.gridHours >= 20 && r.solarShare <= 0.5) {
+			list.push('With mains available nearly all day and solar covering part of the load, this is a bill-reduction system rather than a backup one. Size the battery for the outages you actually get, not for a full day.');
 		}
 		if (r.bankWh > 0 && r.arrayInstalled > 0 && r.arrayInstalled / r.bankWh < 0.1) {
 			list.push('The array is small relative to the bank, so a deeply discharged bank will take more than a day to recover.');
@@ -389,8 +460,8 @@
 					other.setAttribute('aria-checked', active ? 'true' : 'false');
 				});
 				var profile = DATA.profiles[self.profile];
-				if (profile) {
-					self.q('.spc-autonomy').value = String(profile.autonomy);
+				if (profile && !self.backupTouched) {
+					self.q('.spc-backup').value = String(profile.backup_hours);
 				}
 				self.renderLibrary();
 				self.update();
@@ -469,6 +540,28 @@
 			self.update();
 		});
 
+		// Mains hours: reveal the charging option and suggest a backup target.
+		this.q('.spc-grid-hours').addEventListener('change', function () {
+			var hours = parseFloat(this.value) || 0;
+			self.q('.spc-field-gridcharge').hidden = hours <= 0;
+
+			if (!self.backupTouched) {
+				// Default to covering the outage, which is what is left of the day.
+				self.q('.spc-backup').value = self.nearestBackup(hours > 0 ? 24 - hours : 24);
+			}
+			self.update();
+		});
+
+		this.q('.spc-grid-charges').addEventListener('change', function () {
+			self.update();
+		});
+
+		// Once the visitor picks a backup figure, stop overwriting it.
+		this.q('.spc-backup').addEventListener('change', function () {
+			self.backupTouched = true;
+			self.update();
+		});
+
 		// Simultaneity slider label.
 		var slider = this.q('.spc-simultaneity');
 		slider.addEventListener('input', function () {
@@ -477,7 +570,7 @@
 		});
 
 		// Every other control just recalculates.
-		['.spc-psh', '.spc-autonomy', '.spc-battery-type', '.spc-panel', '.spc-battery-unit',
+		['.spc-psh', '.spc-battery-type', '.spc-panel', '.spc-battery-unit', '.spc-solar-share',
 			'.spc-voltage', '.spc-inverter-type', '.spc-controller'].forEach(function (selector) {
 			var field = self.q(selector);
 			if (field) {
@@ -563,7 +656,10 @@
 	Calculator.prototype.config = function () {
 		return {
 			psh: parseFloat(this.q('.spc-psh').value) || 4.5,
-			autonomy: parseFloat(this.q('.spc-autonomy').value) || 1,
+			backupHours: parseFloat(this.q('.spc-backup').value) || 24,
+			gridHours: parseFloat(this.q('.spc-grid-hours').value) || 0,
+			gridCharges: this.q('.spc-grid-charges').checked,
+			solarShare: (parseFloat(this.q('.spc-solar-share').value) || 100) / 100,
 			batteryType: this.q('.spc-battery-type').value,
 			voltage: this.q('.spc-voltage').value,
 			inverterType: this.q('.spc-inverter-type').value,
@@ -581,7 +677,10 @@
 		var c = this.config();
 		return {
 			psh: c.psh,
-			autonomy: c.autonomy,
+			backup_hours: c.backupHours,
+			grid_hours: c.gridHours,
+			grid_charges: c.gridCharges,
+			solar_share: c.solarShare,
 			battery_type: c.batteryType,
 			voltage: c.voltage,
 			inverter_type: c.inverterType,
@@ -590,6 +689,32 @@
 			battery_unit: c.batteryUnit,
 			simultaneity: c.simultaneity
 		};
+	};
+
+	/**
+	 * Pick the smallest backup option that still covers the given outage.
+	 *
+	 * Rounds up rather than to the nearest: choosing 12 hours to cover a
+	 * 16-hour outage would leave the visitor short, which is the one direction
+	 * the suggestion must never err in.
+	 *
+	 * @param {number} hours Hours the battery needs to carry the load.
+	 * @return {string} The option value to select.
+	 */
+	Calculator.prototype.nearestBackup = function (hours) {
+		var options = Array.prototype.map.call(this.q('.spc-backup').options, function (option) {
+			return parseFloat(option.value);
+		}).sort(function (a, b) {
+			return a - b;
+		});
+
+		for (var i = 0; i < options.length; i++) {
+			if (options[i] >= hours) {
+				return String(options[i]);
+			}
+		}
+
+		return String(options[options.length - 1]);
 	};
 
 	/**
@@ -827,7 +952,7 @@
 		set('.spc-r-batt-config', results.batteryStrings > 1
 			? results.batterySeries + ' in series × ' + results.batteryStrings + ' parallel'
 			: results.batterySeries + ' in series');
-		set('.spc-r-backup', num(results.backupHours, 1) + ' h at average draw');
+		set('.spc-r-runtime', num(results.runtimeHours, 1) + ' h at average draw');
 
 		set('.spc-r-inverter', num(results.inverterRated));
 		set('.spc-r-running', num(results.runningW) + ' W');
@@ -840,7 +965,7 @@
 		set('.spc-r-controller-type', results.controllerType);
 		set('.spc-r-controller-calc', num(results.controllerA, 1) + ' A');
 
-		set('.spc-r-annual', num(results.annualKwh) + ' kWh');
+		set('.spc-r-annual', num(results.annualSolarKwh) + ' kWh');
 		set('.spc-r-co2', num(results.co2SavedKg) + ' kg');
 		set('.spc-r-trees', num(results.treesEquivalent) + ' trees');
 		set('.spc-r-fuel', num(results.generatorLitres) + ' L');
@@ -851,6 +976,22 @@
 			set('.spc-r-cost-batt', money(results.costBattery));
 			set('.spc-r-cost-inv', money(results.costInverter));
 			set('.spc-r-cost-install', money(results.costInstall));
+		}
+
+		// The mains card only makes sense once mains hours are set.
+		var mainsCard = this.q('.spc-card-mains');
+		mainsCard.hidden = results.gridHours <= 0;
+		if (results.gridHours > 0) {
+			set('.spc-r-charger', num(results.chargerARated));
+			set('.spc-r-grid-hours', num(results.gridHours) + ' h/day');
+			set('.spc-r-refill', results.refillHours > 0 ? num(results.refillHours, 1) + ' h' : 'not charging');
+			set('.spc-r-charger-safe', num(results.chargerASafe) + ' A');
+			set('.spc-r-mix-solar', num(results.solarDailyWh / 1000, 2) + ' kWh/day');
+			// With solar covering the whole load, mains contributes nothing to the
+			// daily budget and is there purely as insurance. Say so.
+			set('.spc-r-mix-grid', results.gridDailyWh > 0
+				? num(results.gridDailyWh / 1000, 2) + ' kWh/day'
+				: 'backup only');
 		}
 
 		var warningBox = this.q('.spc-warnings');

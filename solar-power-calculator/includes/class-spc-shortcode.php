@@ -234,12 +234,58 @@ class SPC_Shortcode {
 						</label>
 
 						<label class="spc-field">
-							<span class="spc-field-label">Days of backup <span class="spc-hint" title="How many days the batteries should carry the load with no sun at all">?</span></span>
-							<select class="spc-autonomy">
-								<option value="0.5">Half a day (evening only)</option>
-								<option value="1" selected>1 day</option>
-								<option value="2">2 days</option>
-								<option value="3">3 days</option>
+							<span class="spc-field-label">
+								Mains or generator power
+								<span class="spc-hint" title="Hours per day you get grid or generator power. In many places this is only part of the day.">?</span>
+							</span>
+							<select class="spc-grid-hours">
+								<option value="0" selected>None &mdash; fully off grid</option>
+								<?php foreach ( $constants['grid_hour_options'] as $hours ) : ?>
+									<?php if ( $hours > 0 ) : ?>
+										<option value="<?php echo esc_attr( $hours ); ?>">
+											<?php echo esc_html( $hours ); ?> hours a day<?php echo 24 === $hours ? ' (always on)' : ''; ?>
+										</option>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</select>
+						</label>
+
+						<label class="spc-field spc-field-gridcharge" hidden>
+							<span class="spc-field-label">
+								While mains is on
+								<span class="spc-hint" title="A hybrid inverter/charger runs your appliances from the mains and refills the batteries at the same time.">?</span>
+							</span>
+							<span class="spc-check spc-check-block">
+								<input type="checkbox" class="spc-grid-charges" checked>
+								<span>Charge the batteries too</span>
+							</span>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">
+								Solar should supply
+								<span class="spc-hint" title="How much of your daily energy you want from solar. The rest comes from mains or a generator.">?</span>
+							</span>
+							<select class="spc-solar-share">
+								<?php foreach ( $constants['solar_share_options'] as $percent => $label ) : ?>
+									<option value="<?php echo esc_attr( $percent ); ?>" <?php selected( 100, $percent ); ?>>
+										<?php echo esc_html( $label ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">
+								Battery should run your load for
+								<span class="spc-hint" title="The longest stretch the batteries alone must carry the load, with no sun and no mains.">?</span>
+							</span>
+							<select class="spc-backup">
+								<?php foreach ( $constants['backup_hour_options'] as $hours => $label ) : ?>
+									<option value="<?php echo esc_attr( $hours ); ?>" <?php selected( 24, $hours ); ?>>
+										<?php echo esc_html( $label ); ?>
+									</option>
+								<?php endforeach; ?>
 							</select>
 						</label>
 
@@ -369,7 +415,7 @@ class SPC_Shortcode {
 									<div><dt>Nameplate energy</dt><dd class="spc-r-bank-kwh">0 kWh</dd></div>
 									<div><dt>Usable energy</dt><dd class="spc-r-usable">0 kWh</dd></div>
 									<div><dt>Wiring</dt><dd class="spc-r-batt-config">&mdash;</dd></div>
-									<div><dt>Runs your load for</dt><dd class="spc-r-backup">0 h</dd></div>
+									<div><dt>Runs your load for</dt><dd class="spc-r-runtime">0 h</dd></div>
 								</dl>
 							</article>
 
@@ -391,6 +437,19 @@ class SPC_Shortcode {
 									<div><dt>Calculated current</dt><dd class="spc-r-controller-calc">0 A</dd></div>
 									<div><dt>Array voltage side</dt><dd class="spc-r-voltage-2">12V</dd></div>
 								</dl>
+							</article>
+
+							<article class="spc-card spc-card-mains" hidden>
+								<h4>Charging from mains</h4>
+								<p class="spc-card-lead"><strong class="spc-r-charger">0</strong> A charger</p>
+								<dl>
+									<div><dt>Mains window</dt><dd class="spc-r-grid-hours">0 h/day</dd></div>
+									<div><dt>Full recharge takes</dt><dd class="spc-r-refill">0 h</dd></div>
+									<div><dt>Most this bank accepts</dt><dd class="spc-r-charger-safe">0 A</dd></div>
+									<div><dt>Energy from solar</dt><dd class="spc-r-mix-solar">0 kWh/day</dd></div>
+									<div><dt>Energy from mains</dt><dd class="spc-r-mix-grid">0 kWh/day</dd></div>
+								</dl>
+								<p class="spc-card-note">A hybrid inverter/charger does this automatically — it runs your appliances from the mains and refills the batteries at the same time.</p>
 							</article>
 
 							<article class="spc-card spc-card-impact">

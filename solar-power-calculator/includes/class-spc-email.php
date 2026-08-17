@@ -160,7 +160,10 @@ class SPC_Email {
 
 		return array(
 			'psh'           => isset( $decoded['psh'] ) ? min( 12, max( 0.5, (float) $decoded['psh'] ) ) : 4.5,
-			'autonomy'      => isset( $decoded['autonomy'] ) ? min( 7, max( 0.5, (float) $decoded['autonomy'] ) ) : 1,
+			'backup_hours'  => isset( $decoded['backup_hours'] ) ? min( 168, max( 1, (float) $decoded['backup_hours'] ) ) : 24,
+			'grid_hours'    => isset( $decoded['grid_hours'] ) ? min( 24, max( 0, (float) $decoded['grid_hours'] ) ) : 0,
+			'grid_charges'  => ! empty( $decoded['grid_charges'] ),
+			'solar_share'   => isset( $decoded['solar_share'] ) ? min( 1, max( 0.05, (float) $decoded['solar_share'] ) ) : 1,
 			'battery_type'  => isset( $batteries[ $battery_type ] ) ? $battery_type : 'lithium',
 			'voltage'       => in_array( $voltage, array( 'auto', '12', '24', '48' ), true ) ? $voltage : 'auto',
 			'inverter_type' => isset( $decoded['inverter_type'] ) && 'modified_sine' === $decoded['inverter_type'] ? 'modified_sine' : 'pure_sine',
@@ -191,9 +194,19 @@ class SPC_Email {
 			'Charge controller'  => number_format_i18n( $r['controller_rated'], 0 ) . 'A ' . esc_html( $r['controller_type'] ),
 			'System voltage'     => $r['system_voltage'] . 'V',
 			'Peak sun hours'     => number_format_i18n( $r['psh'], 1 ) . ' h/day',
-			'Days of backup'     => number_format_i18n( $r['autonomy'], 1 ),
+			'Battery runs load for' => number_format_i18n( $r['backup_hours'], 0 ) . ' hours',
 			'CO2 avoided a year' => number_format_i18n( $r['co2_saved_kg'], 0 ) . ' kg',
 		);
+
+		if ( $r['grid_hours'] > 0 ) {
+			$rows['Mains available']  = number_format_i18n( $r['grid_hours'], 0 ) . ' hours a day';
+			$rows['Energy from solar'] = number_format_i18n( $r['solar_daily_wh'] / 1000, 2 ) . ' kWh/day';
+			$rows['Energy from mains'] = number_format_i18n( $r['grid_daily_wh'] / 1000, 2 ) . ' kWh/day';
+			if ( $r['grid_charges'] ) {
+				$rows['Mains battery charger'] = number_format_i18n( $r['charger_a_rated'], 0 ) . 'A ('
+					. number_format_i18n( $r['refill_hours'], 1 ) . ' h for a full recharge)';
+			}
+		}
 
 		if ( ! empty( $settings['show_costs'] ) ) {
 			$rows['Budget estimate'] = $currency . number_format_i18n( $r['cost_total'], 0 );

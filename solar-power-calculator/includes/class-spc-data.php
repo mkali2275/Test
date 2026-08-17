@@ -117,22 +117,22 @@ class SPC_Data {
 			'spc_profiles',
 			array(
 				'home' => array(
-					'label'    => 'Home',
-					'blurb'    => 'Whole house or a few essential circuits',
-					'icon'     => 'home',
-					'autonomy' => 1,
+					'label'        => 'Home',
+					'blurb'        => 'Whole house or a few essential circuits',
+					'icon'         => 'home',
+					'backup_hours' => 24,
 				),
 				'office' => array(
-					'label'    => 'Office',
-					'blurb'    => 'Workstations, IT equipment and cooling',
-					'icon'     => 'office',
-					'autonomy' => 1,
+					'label'        => 'Office',
+					'blurb'        => 'Workstations, IT equipment and cooling',
+					'icon'         => 'office',
+					'backup_hours' => 12,
 				),
 				'travel' => array(
-					'label'    => 'Travel / RV',
-					'blurb'    => 'Van, caravan, boat or camping setup',
-					'icon'     => 'van',
-					'autonomy' => 2,
+					'label'        => 'Travel / RV',
+					'blurb'        => 'Van, caravan, boat or camping setup',
+					'icon'         => 'van',
+					'backup_hours' => 48,
 				),
 			)
 		);
@@ -181,10 +181,10 @@ class SPC_Data {
 		return apply_filters(
 			'spc_battery_types',
 			array(
-				'lithium'   => array( 'label' => 'Lithium (LiFePO4)',   'dod' => 0.8,  'efficiency' => 0.95, 'cycles' => 4000, 'cost_kwh' => 400 ),
-				'agm'       => array( 'label' => 'AGM / Gel sealed',    'dod' => 0.5,  'efficiency' => 0.85, 'cycles' => 700,  'cost_kwh' => 250 ),
-				'tubular'   => array( 'label' => 'Tubular deep cycle',  'dod' => 0.5,  'efficiency' => 0.85, 'cycles' => 1500, 'cost_kwh' => 220 ),
-				'flooded'   => array( 'label' => 'Flooded lead-acid',   'dod' => 0.5,  'efficiency' => 0.8,  'cycles' => 500,  'cost_kwh' => 160 ),
+				'lithium'   => array( 'label' => 'Lithium (LiFePO4)',   'dod' => 0.8,  'efficiency' => 0.95, 'cycles' => 4000, 'cost_kwh' => 400, 'max_charge_c' => 0.5 ),
+				'agm'       => array( 'label' => 'AGM / Gel sealed',    'dod' => 0.5,  'efficiency' => 0.85, 'cycles' => 700,  'cost_kwh' => 250, 'max_charge_c' => 0.25 ),
+				'tubular'   => array( 'label' => 'Tubular deep cycle',  'dod' => 0.5,  'efficiency' => 0.85, 'cycles' => 1500, 'cost_kwh' => 220, 'max_charge_c' => 0.2 ),
+				'flooded'   => array( 'label' => 'Flooded lead-acid',   'dod' => 0.5,  'efficiency' => 0.8,  'cycles' => 500,  'cost_kwh' => 160, 'max_charge_c' => 0.15 ),
 			)
 		);
 	}
@@ -216,6 +216,34 @@ class SPC_Data {
 				'power_factor'       => 0.8,
 				// Fraction of connected AC load assumed to run at the same moment.
 				'simultaneity'       => 0.7,
+				// Mains battery charger efficiency, AC in to DC stored.
+				'charger_efficiency' => 0.9,
+				// Hours of mains offered in the "power available" control.
+				'grid_hour_options'  => array( 0, 2, 4, 6, 8, 10, 12, 16, 20, 24 ),
+				// Hours the battery is asked to carry the load on its own. The
+				// steps are fine enough to express "24 minus the mains window"
+				// for every option offered in grid_hour_options.
+				'backup_hour_options' => array(
+					4  => '4 hours',
+					6  => '6 hours',
+					8  => '8 hours',
+					10 => '10 hours',
+					12 => '12 hours',
+					14 => '14 hours',
+					16 => '16 hours',
+					18 => '18 hours',
+					20 => '20 hours',
+					24 => '1 day',
+					48 => '2 days',
+					72 => '3 days',
+				),
+				// Share of the daily load the solar array is asked to supply.
+				'solar_share_options' => array(
+					100 => 'Everything (no mains help)',
+					75  => 'Most of it (about 75%)',
+					50  => 'Half of it',
+					25  => 'A quarter (cut the bill)',
+				),
 				// Grid emission factor, kg CO2 per kWh displaced.
 				'co2_per_kwh'        => 0.45,
 				// A mature tree absorbs roughly this much CO2 per year, in kg.

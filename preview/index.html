@@ -537,6 +537,26 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 	padding-bottom: 8px;
 }
 
+.spc-check-block {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	font-size: 0.94rem;
+}
+
+.spc-check-block input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	accent-color: var(--spc-accent);
+	flex: 0 0 auto;
+}
+
+.spc-card-mains {
+	border-color: var(--spc-accent);
+}
+
 .spc-custom-error {
 	margin: 10px 0 0;
 	color: #dc2626;
@@ -1160,13 +1180,92 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 						</label>
 
 						<label class="spc-field">
-							<span class="spc-field-label">Days of backup <span class="spc-hint" title="How many days the batteries should carry the load with no sun at all">?</span></span>
-							<select class="spc-autonomy">
-								<option value="0.5">Half a day (evening only)</option>
-								<option value="1" selected>1 day</option>
-								<option value="2">2 days</option>
-								<option value="3">3 days</option>
-							</select>
+							<span class="spc-field-label">
+								Mains or generator power
+								<span class="spc-hint" title="Hours per day you get grid or generator power. In many places this is only part of the day.">?</span>
+							</span>
+							<select class="spc-grid-hours">
+								<option value="0" selected>None &mdash; fully off grid</option>
+																																												<option value="2">
+											2 hours a day										</option>
+																																				<option value="4">
+											4 hours a day										</option>
+																																				<option value="6">
+											6 hours a day										</option>
+																																				<option value="8">
+											8 hours a day										</option>
+																																				<option value="10">
+											10 hours a day										</option>
+																																				<option value="12">
+											12 hours a day										</option>
+																																				<option value="16">
+											16 hours a day										</option>
+																																				<option value="20">
+											20 hours a day										</option>
+																																				<option value="24">
+											24 hours a day (always on)										</option>
+																								</select>
+						</label>
+
+						<label class="spc-field spc-field-gridcharge" hidden>
+							<span class="spc-field-label">
+								While mains is on
+								<span class="spc-hint" title="A hybrid inverter/charger runs your appliances from the mains and refills the batteries at the same time.">?</span>
+							</span>
+							<span class="spc-check spc-check-block">
+								<input type="checkbox" class="spc-grid-charges" checked>
+								<span>Charge the batteries too</span>
+							</span>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">
+								Solar should supply
+								<span class="spc-hint" title="How much of your daily energy you want from solar. The rest comes from mains or a generator.">?</span>
+							</span>
+							<select class="spc-solar-share">
+																	<option value="100"  selected="selected">
+										Everything (no mains help)									</option>
+																	<option value="75" >
+										Most of it (about 75%)									</option>
+																	<option value="50" >
+										Half of it									</option>
+																	<option value="25" >
+										A quarter (cut the bill)									</option>
+															</select>
+						</label>
+
+						<label class="spc-field">
+							<span class="spc-field-label">
+								Battery should run your load for
+								<span class="spc-hint" title="The longest stretch the batteries alone must carry the load, with no sun and no mains.">?</span>
+							</span>
+							<select class="spc-backup">
+																	<option value="4" >
+										4 hours									</option>
+																	<option value="6" >
+										6 hours									</option>
+																	<option value="8" >
+										8 hours									</option>
+																	<option value="10" >
+										10 hours									</option>
+																	<option value="12" >
+										12 hours									</option>
+																	<option value="14" >
+										14 hours									</option>
+																	<option value="16" >
+										16 hours									</option>
+																	<option value="18" >
+										18 hours									</option>
+																	<option value="20" >
+										20 hours									</option>
+																	<option value="24"  selected="selected">
+										1 day									</option>
+																	<option value="48" >
+										2 days									</option>
+																	<option value="72" >
+										3 days									</option>
+															</select>
 						</label>
 
 						<label class="spc-field">
@@ -1332,7 +1431,7 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 									<div><dt>Nameplate energy</dt><dd class="spc-r-bank-kwh">0 kWh</dd></div>
 									<div><dt>Usable energy</dt><dd class="spc-r-usable">0 kWh</dd></div>
 									<div><dt>Wiring</dt><dd class="spc-r-batt-config">&mdash;</dd></div>
-									<div><dt>Runs your load for</dt><dd class="spc-r-backup">0 h</dd></div>
+									<div><dt>Runs your load for</dt><dd class="spc-r-runtime">0 h</dd></div>
 								</dl>
 							</article>
 
@@ -1354,6 +1453,19 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 									<div><dt>Calculated current</dt><dd class="spc-r-controller-calc">0 A</dd></div>
 									<div><dt>Array voltage side</dt><dd class="spc-r-voltage-2">12V</dd></div>
 								</dl>
+							</article>
+
+							<article class="spc-card spc-card-mains" hidden>
+								<h4>Charging from mains</h4>
+								<p class="spc-card-lead"><strong class="spc-r-charger">0</strong> A charger</p>
+								<dl>
+									<div><dt>Mains window</dt><dd class="spc-r-grid-hours">0 h/day</dd></div>
+									<div><dt>Full recharge takes</dt><dd class="spc-r-refill">0 h</dd></div>
+									<div><dt>Most this bank accepts</dt><dd class="spc-r-charger-safe">0 A</dd></div>
+									<div><dt>Energy from solar</dt><dd class="spc-r-mix-solar">0 kWh/day</dd></div>
+									<div><dt>Energy from mains</dt><dd class="spc-r-mix-grid">0 kWh/day</dd></div>
+								</dl>
+								<p class="spc-card-note">A hybrid inverter/charger does this automatically — it runs your appliances from the mains and refills the batteries at the same time.</p>
 							</article>
 
 							<article class="spc-card spc-card-impact">
@@ -1398,7 +1510,7 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			</div>
 		</div>
 		
-<script>window.SPC_DATA = {"appliances":[{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"led_bulb","name":"LED bulb","profiles":["home","office"],"watts":10,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"security_light","name":"Security flood light","profiles":["home","office"],"watts":30,"hours":12},{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"panel_light","name":"LED panel / tube light","profiles":["home","office"],"watts":40,"hours":8},{"duty":1,"surge":1.5,"dc":false,"group":"Cooling","id":"ceiling_fan","name":"Ceiling fan","profiles":["home","office"],"watts":75,"hours":8},{"duty":1,"surge":1.5,"dc":false,"group":"Cooling","id":"standing_fan","name":"Standing / table fan","profiles":["home","office"],"watts":60,"hours":6},{"duty":0.7,"surge":1.5,"dc":false,"group":"Cooling","id":"ac_1hp_inv","name":"Air conditioner 1HP (inverter)","profiles":["home","office"],"watts":750,"hours":6},{"duty":0.8,"surge":3,"dc":false,"group":"Cooling","id":"ac_15hp","name":"Air conditioner 1.5HP (standard)","profiles":["home","office"],"watts":1500,"hours":6},{"duty":0.35,"surge":3,"dc":false,"group":"Kitchen","id":"fridge_small","name":"Refrigerator (150-200L)","profiles":["home","office"],"watts":100,"hours":24},{"duty":0.4,"surge":3,"dc":false,"group":"Kitchen","id":"fridge_large","name":"Refrigerator (350L+ / double door)","profiles":["home"],"watts":200,"hours":24},{"duty":0.4,"surge":3,"dc":false,"group":"Kitchen","id":"freezer","name":"Chest freezer","profiles":["home"],"watts":150,"hours":24},{"duty":1,"surge":1.5,"dc":false,"group":"Kitchen","id":"microwave","name":"Microwave oven","profiles":["home","office"],"watts":1000,"hours":0.3},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"kettle","name":"Electric kettle","profiles":["home","office"],"watts":1500,"hours":0.3},{"duty":1,"surge":2,"dc":false,"group":"Kitchen","id":"blender","name":"Blender","profiles":["home"],"watts":400,"hours":0.2},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"rice_cooker","name":"Rice cooker","profiles":["home"],"watts":700,"hours":0.5},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"toaster","name":"Toaster","profiles":["home"],"watts":800,"hours":0.2},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"tv_32","name":"LED TV 32\"","profiles":["home","office"],"watts":50,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"tv_55","name":"LED TV 55\"","profiles":["home"],"watts":120,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"decoder","name":"Decoder / set-top box","profiles":["home"],"watts":25,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"router","name":"Wi-Fi router / modem","profiles":["home","office","travel"],"watts":12,"hours":24},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"laptop","name":"Laptop","profiles":["home","office","travel"],"watts":65,"hours":6},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"phone_charger","name":"Phone charger","profiles":["home","office","travel"],"watts":8,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"cctv","name":"CCTV camera","profiles":["home","office"],"watts":10,"hours":24},{"duty":1,"surge":3,"dc":false,"group":"Utility","id":"washing_machine","name":"Washing machine","profiles":["home"],"watts":500,"hours":1},{"duty":1,"surge":1,"dc":false,"group":"Utility","id":"iron","name":"Clothes iron","profiles":["home"],"watts":1200,"hours":0.5},{"duty":1,"surge":1,"dc":false,"group":"Utility","id":"hair_dryer","name":"Hair dryer","profiles":["home"],"watts":1200,"hours":0.2},{"duty":1,"surge":3,"dc":false,"group":"Utility","id":"water_pump","name":"Water pump (0.5HP)","profiles":["home"],"watts":375,"hours":1},{"duty":0.6,"surge":1,"dc":false,"group":"Utility","id":"space_heater","name":"Electric space heater","profiles":["home","office"],"watts":1500,"hours":2},{"duty":1,"surge":1.5,"dc":false,"group":"Workstation","id":"desktop_pc","name":"Desktop PC + monitor","profiles":["office","home"],"watts":200,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Workstation","id":"laptop_dock","name":"Laptop + external monitor","profiles":["office"],"watts":120,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Workstation","id":"monitor","name":"Monitor 24\"","profiles":["office"],"watts":30,"hours":8},{"duty":1,"surge":2,"dc":false,"group":"Office kit","id":"laser_printer","name":"Laser printer","profiles":["office"],"watts":500,"hours":0.5},{"duty":1,"surge":1.5,"dc":false,"group":"Office kit","id":"inkjet_printer","name":"Inkjet printer","profiles":["office","home"],"watts":30,"hours":0.5},{"duty":0.5,"surge":2,"dc":false,"group":"Office kit","id":"photocopier","name":"Photocopier","profiles":["office"],"watts":1200,"hours":1},{"duty":1,"surge":1,"dc":false,"group":"Office kit","id":"scanner","name":"Scanner","profiles":["office"],"watts":20,"hours":1},{"duty":1,"surge":1.5,"dc":false,"group":"Office kit","id":"projector","name":"Projector","profiles":["office"],"watts":300,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"IT","id":"net_switch","name":"Network switch","profiles":["office"],"watts":20,"hours":24},{"duty":1,"surge":1.5,"dc":false,"group":"IT","id":"server","name":"Small server / NAS","profiles":["office"],"watts":350,"hours":24},{"duty":1,"surge":1,"dc":false,"group":"IT","id":"voip_phone","name":"VoIP desk phone","profiles":["office"],"watts":6,"hours":8},{"duty":0.4,"surge":2,"dc":false,"group":"Office kit","id":"water_dispenser","name":"Water dispenser (hot & cold)","profiles":["office","home"],"watts":550,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Office kit","id":"coffee_machine","name":"Coffee machine","profiles":["office","home"],"watts":900,"hours":0.3},{"duty":1,"surge":1,"dc":true,"group":"Lighting","id":"rv_led","name":"12V LED strip lighting","profiles":["travel"],"watts":5,"hours":5},{"duty":0.4,"surge":3,"dc":true,"group":"Cooling","id":"rv_fridge","name":"12V compressor fridge","profiles":["travel"],"watts":45,"hours":24},{"duty":0.5,"surge":2,"dc":true,"group":"Cooling","id":"cooler_box","name":"Portable cooler box","profiles":["travel"],"watts":60,"hours":24},{"duty":1,"surge":1.5,"dc":true,"group":"Cooling","id":"vent_fan","name":"Roof vent fan","profiles":["travel"],"watts":30,"hours":6},{"duty":1,"surge":2,"dc":true,"group":"Utility","id":"rv_pump","name":"12V water pump","profiles":["travel"],"watts":50,"hours":0.5},{"duty":0.5,"surge":4,"dc":true,"group":"Utility","id":"diesel_heater","name":"Diesel air heater","profiles":["travel"],"watts":30,"hours":6},{"duty":1,"surge":2,"dc":true,"group":"Utility","id":"air_compressor","name":"12V air compressor","profiles":["travel"],"watts":180,"hours":0.2},{"duty":1,"surge":1.5,"dc":false,"group":"Electronics","id":"starlink","name":"Satellite internet (Starlink)","profiles":["travel","office"],"watts":60,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Medical","id":"cpap","name":"CPAP machine (no humidifier)","profiles":["travel","home"],"watts":60,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"camera_charger","name":"Camera battery charger","profiles":["travel"],"watts":30,"hours":2},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"drone_charger","name":"Drone battery charger","profiles":["travel"],"watts":80,"hours":1.5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"portable_tv","name":"Portable TV","profiles":["travel"],"watts":40,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"induction_hob","name":"Portable induction cooktop","profiles":["travel","home"],"watts":1200,"hours":0.5},{"duty":0.5,"surge":1,"dc":false,"group":"Utility","id":"electric_blanket","name":"Electric blanket","profiles":["travel","home"],"watts":60,"hours":6}],"profiles":{"home":{"label":"Home","blurb":"Whole house or a few essential circuits","icon":"home","autonomy":1},"office":{"label":"Office","blurb":"Workstations, IT equipment and cooling","icon":"office","autonomy":1},"travel":{"label":"Travel / RV","blurb":"Van, caravan, boat or camping setup","icon":"van","autonomy":2}},"regions":[{"id":"wafrica_north","name":"West Africa - northern / Sahel","psh":5.8},{"id":"wafrica_south","name":"West Africa - coastal / humid","psh":4.5},{"id":"eafrica","name":"East Africa / Horn of Africa","psh":5.5},{"id":"safrica","name":"Southern Africa","psh":5.5},{"id":"nafrica_me","name":"North Africa / Middle East","psh":5.7},{"id":"south_asia","name":"South Asia (India, Pakistan)","psh":5},{"id":"sea","name":"South East Asia","psh":4.2},{"id":"aus","name":"Australia","psh":5},{"id":"us_southwest","name":"US Southwest","psh":5.7},{"id":"us_central","name":"US Central / Southeast","psh":4.5},{"id":"us_north","name":"US North / Canada","psh":3.5},{"id":"latam","name":"Latin America","psh":4.8},{"id":"south_europe","name":"Southern Europe","psh":4.2},{"id":"north_europe","name":"Northern Europe / UK","psh":2.6}],"batteries":{"lithium":{"label":"Lithium (LiFePO4)","dod":0.8,"efficiency":0.95,"cycles":4000,"cost_kwh":400},"agm":{"label":"AGM / Gel sealed","dod":0.5,"efficiency":0.85,"cycles":700,"cost_kwh":250},"tubular":{"label":"Tubular deep cycle","dod":0.5,"efficiency":0.85,"cycles":1500,"cost_kwh":220},"flooded":{"label":"Flooded lead-acid","dod":0.5,"efficiency":0.8,"cycles":500,"cost_kwh":160}},"constants":{"inverter_efficiency":{"pure_sine":0.9,"modified_sine":0.85},"controller_efficiency":{"mppt":0.95,"pwm":0.75},"array_derate":0.85,"safety_factor":1.25,"power_factor":0.8,"simultaneity":0.7,"co2_per_kwh":0.45,"co2_per_tree_year":21,"generator_l_per_kwh":0.4,"inverter_sizes":[300,600,1000,1500,2000,2500,3000,4000,5000,6000,8000,10000,12000,15000,20000],"controller_sizes":[10,20,30,40,50,60,80,100,120,150,200],"panel_sizes":[100,150,200,250,300,330,400,450,550,600],"battery_units":[{"id":"12v100","label":"12V 100Ah","volts":12,"ah":100},{"id":"12v150","label":"12V 150Ah","volts":12,"ah":150},{"id":"12v200","label":"12V 200Ah","volts":12,"ah":200},{"id":"12v220","label":"12V 220Ah","volts":12,"ah":220},{"id":"24v100","label":"24V 100Ah","volts":24,"ah":100},{"id":"48v100","label":"48V 100Ah","volts":48,"ah":100},{"id":"48v200","label":"48V 200Ah","volts":48,"ah":200}]},"settings":{"currency":"$","showCosts":true,"costPvWatt":0.9,"costInverterKw":300,"costInstallPct":25,"enableEmail":false,"ctaText":"","ctaUrl":"","defaultRegion":"wafrica_south","defaultBattery":"lithium","defaultPanel":550},"ajaxUrl":"/wp-admin/admin-ajax.php","nonce":"preview-nonce"};</script>
+<script>window.SPC_DATA = {"appliances":[{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"led_bulb","name":"LED bulb","profiles":["home","office"],"watts":10,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"security_light","name":"Security flood light","profiles":["home","office"],"watts":30,"hours":12},{"duty":1,"surge":1,"dc":false,"group":"Lighting","id":"panel_light","name":"LED panel / tube light","profiles":["home","office"],"watts":40,"hours":8},{"duty":1,"surge":1.5,"dc":false,"group":"Cooling","id":"ceiling_fan","name":"Ceiling fan","profiles":["home","office"],"watts":75,"hours":8},{"duty":1,"surge":1.5,"dc":false,"group":"Cooling","id":"standing_fan","name":"Standing / table fan","profiles":["home","office"],"watts":60,"hours":6},{"duty":0.7,"surge":1.5,"dc":false,"group":"Cooling","id":"ac_1hp_inv","name":"Air conditioner 1HP (inverter)","profiles":["home","office"],"watts":750,"hours":6},{"duty":0.8,"surge":3,"dc":false,"group":"Cooling","id":"ac_15hp","name":"Air conditioner 1.5HP (standard)","profiles":["home","office"],"watts":1500,"hours":6},{"duty":0.35,"surge":3,"dc":false,"group":"Kitchen","id":"fridge_small","name":"Refrigerator (150-200L)","profiles":["home","office"],"watts":100,"hours":24},{"duty":0.4,"surge":3,"dc":false,"group":"Kitchen","id":"fridge_large","name":"Refrigerator (350L+ / double door)","profiles":["home"],"watts":200,"hours":24},{"duty":0.4,"surge":3,"dc":false,"group":"Kitchen","id":"freezer","name":"Chest freezer","profiles":["home"],"watts":150,"hours":24},{"duty":1,"surge":1.5,"dc":false,"group":"Kitchen","id":"microwave","name":"Microwave oven","profiles":["home","office"],"watts":1000,"hours":0.3},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"kettle","name":"Electric kettle","profiles":["home","office"],"watts":1500,"hours":0.3},{"duty":1,"surge":2,"dc":false,"group":"Kitchen","id":"blender","name":"Blender","profiles":["home"],"watts":400,"hours":0.2},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"rice_cooker","name":"Rice cooker","profiles":["home"],"watts":700,"hours":0.5},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"toaster","name":"Toaster","profiles":["home"],"watts":800,"hours":0.2},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"tv_32","name":"LED TV 32\"","profiles":["home","office"],"watts":50,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"tv_55","name":"LED TV 55\"","profiles":["home"],"watts":120,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"decoder","name":"Decoder / set-top box","profiles":["home"],"watts":25,"hours":5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"router","name":"Wi-Fi router / modem","profiles":["home","office","travel"],"watts":12,"hours":24},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"laptop","name":"Laptop","profiles":["home","office","travel"],"watts":65,"hours":6},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"phone_charger","name":"Phone charger","profiles":["home","office","travel"],"watts":8,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"cctv","name":"CCTV camera","profiles":["home","office"],"watts":10,"hours":24},{"duty":1,"surge":3,"dc":false,"group":"Utility","id":"washing_machine","name":"Washing machine","profiles":["home"],"watts":500,"hours":1},{"duty":1,"surge":1,"dc":false,"group":"Utility","id":"iron","name":"Clothes iron","profiles":["home"],"watts":1200,"hours":0.5},{"duty":1,"surge":1,"dc":false,"group":"Utility","id":"hair_dryer","name":"Hair dryer","profiles":["home"],"watts":1200,"hours":0.2},{"duty":1,"surge":3,"dc":false,"group":"Utility","id":"water_pump","name":"Water pump (0.5HP)","profiles":["home"],"watts":375,"hours":1},{"duty":0.6,"surge":1,"dc":false,"group":"Utility","id":"space_heater","name":"Electric space heater","profiles":["home","office"],"watts":1500,"hours":2},{"duty":1,"surge":1.5,"dc":false,"group":"Workstation","id":"desktop_pc","name":"Desktop PC + monitor","profiles":["office","home"],"watts":200,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Workstation","id":"laptop_dock","name":"Laptop + external monitor","profiles":["office"],"watts":120,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Workstation","id":"monitor","name":"Monitor 24\"","profiles":["office"],"watts":30,"hours":8},{"duty":1,"surge":2,"dc":false,"group":"Office kit","id":"laser_printer","name":"Laser printer","profiles":["office"],"watts":500,"hours":0.5},{"duty":1,"surge":1.5,"dc":false,"group":"Office kit","id":"inkjet_printer","name":"Inkjet printer","profiles":["office","home"],"watts":30,"hours":0.5},{"duty":0.5,"surge":2,"dc":false,"group":"Office kit","id":"photocopier","name":"Photocopier","profiles":["office"],"watts":1200,"hours":1},{"duty":1,"surge":1,"dc":false,"group":"Office kit","id":"scanner","name":"Scanner","profiles":["office"],"watts":20,"hours":1},{"duty":1,"surge":1.5,"dc":false,"group":"Office kit","id":"projector","name":"Projector","profiles":["office"],"watts":300,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"IT","id":"net_switch","name":"Network switch","profiles":["office"],"watts":20,"hours":24},{"duty":1,"surge":1.5,"dc":false,"group":"IT","id":"server","name":"Small server / NAS","profiles":["office"],"watts":350,"hours":24},{"duty":1,"surge":1,"dc":false,"group":"IT","id":"voip_phone","name":"VoIP desk phone","profiles":["office"],"watts":6,"hours":8},{"duty":0.4,"surge":2,"dc":false,"group":"Office kit","id":"water_dispenser","name":"Water dispenser (hot & cold)","profiles":["office","home"],"watts":550,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Office kit","id":"coffee_machine","name":"Coffee machine","profiles":["office","home"],"watts":900,"hours":0.3},{"duty":1,"surge":1,"dc":true,"group":"Lighting","id":"rv_led","name":"12V LED strip lighting","profiles":["travel"],"watts":5,"hours":5},{"duty":0.4,"surge":3,"dc":true,"group":"Cooling","id":"rv_fridge","name":"12V compressor fridge","profiles":["travel"],"watts":45,"hours":24},{"duty":0.5,"surge":2,"dc":true,"group":"Cooling","id":"cooler_box","name":"Portable cooler box","profiles":["travel"],"watts":60,"hours":24},{"duty":1,"surge":1.5,"dc":true,"group":"Cooling","id":"vent_fan","name":"Roof vent fan","profiles":["travel"],"watts":30,"hours":6},{"duty":1,"surge":2,"dc":true,"group":"Utility","id":"rv_pump","name":"12V water pump","profiles":["travel"],"watts":50,"hours":0.5},{"duty":0.5,"surge":4,"dc":true,"group":"Utility","id":"diesel_heater","name":"Diesel air heater","profiles":["travel"],"watts":30,"hours":6},{"duty":1,"surge":2,"dc":true,"group":"Utility","id":"air_compressor","name":"12V air compressor","profiles":["travel"],"watts":180,"hours":0.2},{"duty":1,"surge":1.5,"dc":false,"group":"Electronics","id":"starlink","name":"Satellite internet (Starlink)","profiles":["travel","office"],"watts":60,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Medical","id":"cpap","name":"CPAP machine (no humidifier)","profiles":["travel","home"],"watts":60,"hours":8},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"camera_charger","name":"Camera battery charger","profiles":["travel"],"watts":30,"hours":2},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"drone_charger","name":"Drone battery charger","profiles":["travel"],"watts":80,"hours":1.5},{"duty":1,"surge":1,"dc":false,"group":"Electronics","id":"portable_tv","name":"Portable TV","profiles":["travel"],"watts":40,"hours":3},{"duty":1,"surge":1,"dc":false,"group":"Kitchen","id":"induction_hob","name":"Portable induction cooktop","profiles":["travel","home"],"watts":1200,"hours":0.5},{"duty":0.5,"surge":1,"dc":false,"group":"Utility","id":"electric_blanket","name":"Electric blanket","profiles":["travel","home"],"watts":60,"hours":6}],"profiles":{"home":{"label":"Home","blurb":"Whole house or a few essential circuits","icon":"home","backup_hours":24},"office":{"label":"Office","blurb":"Workstations, IT equipment and cooling","icon":"office","backup_hours":12},"travel":{"label":"Travel / RV","blurb":"Van, caravan, boat or camping setup","icon":"van","backup_hours":48}},"regions":[{"id":"wafrica_north","name":"West Africa - northern / Sahel","psh":5.8},{"id":"wafrica_south","name":"West Africa - coastal / humid","psh":4.5},{"id":"eafrica","name":"East Africa / Horn of Africa","psh":5.5},{"id":"safrica","name":"Southern Africa","psh":5.5},{"id":"nafrica_me","name":"North Africa / Middle East","psh":5.7},{"id":"south_asia","name":"South Asia (India, Pakistan)","psh":5},{"id":"sea","name":"South East Asia","psh":4.2},{"id":"aus","name":"Australia","psh":5},{"id":"us_southwest","name":"US Southwest","psh":5.7},{"id":"us_central","name":"US Central / Southeast","psh":4.5},{"id":"us_north","name":"US North / Canada","psh":3.5},{"id":"latam","name":"Latin America","psh":4.8},{"id":"south_europe","name":"Southern Europe","psh":4.2},{"id":"north_europe","name":"Northern Europe / UK","psh":2.6}],"batteries":{"lithium":{"label":"Lithium (LiFePO4)","dod":0.8,"efficiency":0.95,"cycles":4000,"cost_kwh":400,"max_charge_c":0.5},"agm":{"label":"AGM / Gel sealed","dod":0.5,"efficiency":0.85,"cycles":700,"cost_kwh":250,"max_charge_c":0.25},"tubular":{"label":"Tubular deep cycle","dod":0.5,"efficiency":0.85,"cycles":1500,"cost_kwh":220,"max_charge_c":0.2},"flooded":{"label":"Flooded lead-acid","dod":0.5,"efficiency":0.8,"cycles":500,"cost_kwh":160,"max_charge_c":0.15}},"constants":{"inverter_efficiency":{"pure_sine":0.9,"modified_sine":0.85},"controller_efficiency":{"mppt":0.95,"pwm":0.75},"array_derate":0.85,"safety_factor":1.25,"power_factor":0.8,"simultaneity":0.7,"charger_efficiency":0.9,"grid_hour_options":[0,2,4,6,8,10,12,16,20,24],"backup_hour_options":{"4":"4 hours","6":"6 hours","8":"8 hours","10":"10 hours","12":"12 hours","14":"14 hours","16":"16 hours","18":"18 hours","20":"20 hours","24":"1 day","48":"2 days","72":"3 days"},"solar_share_options":{"100":"Everything (no mains help)","75":"Most of it (about 75%)","50":"Half of it","25":"A quarter (cut the bill)"},"co2_per_kwh":0.45,"co2_per_tree_year":21,"generator_l_per_kwh":0.4,"inverter_sizes":[300,600,1000,1500,2000,2500,3000,4000,5000,6000,8000,10000,12000,15000,20000],"controller_sizes":[10,20,30,40,50,60,80,100,120,150,200],"panel_sizes":[100,150,200,250,300,330,400,450,550,600],"battery_units":[{"id":"12v100","label":"12V 100Ah","volts":12,"ah":100},{"id":"12v150","label":"12V 150Ah","volts":12,"ah":150},{"id":"12v200","label":"12V 200Ah","volts":12,"ah":200},{"id":"12v220","label":"12V 220Ah","volts":12,"ah":220},{"id":"24v100","label":"24V 100Ah","volts":24,"ah":100},{"id":"48v100","label":"48V 100Ah","volts":48,"ah":100},{"id":"48v200","label":"48V 200Ah","volts":48,"ah":200}]},"settings":{"currency":"$","showCosts":true,"costPvWatt":0.9,"costInverterKw":300,"costInstallPct":25,"enableEmail":false,"ctaText":"","ctaUrl":"","defaultRegion":"wafrica_south","defaultBattery":"lithium","defaultPanel":550},"ajaxUrl":"/wp-admin/admin-ajax.php","nonce":"preview-nonce"};</script>
 <script>
 /**
  * Solar Power Calculator - front-end.
@@ -1548,7 +1660,16 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		var controllerEff = C.controller_efficiency[config.controller] || C.controller_efficiency.mppt;
 
 		var psh = Math.max(0.5, config.psh);
-		var autonomy = Math.max(0.5, config.autonomy);
+
+		// Backup in hours so intermittent-mains setups can ask for "cover the
+		// 10-hour outage". The older autonomy-in-days input still works.
+		var backupHours = config.backupHours != null
+			? clamp(config.backupHours, 1, 168)
+			: Math.max(0.5, config.autonomy) * 24;
+
+		var gridHours = clamp(config.gridHours || 0, 0, 24);
+		var gridCharges = gridHours > 0 && !!config.gridCharges;
+		var solarShare = clamp(config.solarShare == null ? 1 : config.solarShare, 0.05, 1);
 
 		/* 1. Daily energy */
 		var acWh = 0;
@@ -1588,10 +1709,14 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		// AC loads pay the inverter conversion penalty; DC loads do not.
 		var batteryDrawWh = (inverterEff > 0 ? acWh / inverterEff : 0) + dcWh;
 
-		/* 2. Solar array - independent of system voltage, so it comes first */
+		/* 2. Solar array - independent of system voltage, so it comes first.
+		 * Only covers the share of the load the owner wants from solar; mains
+		 * carries the rest where it is available.
+		 */
+		var solarDrawWh = batteryDrawWh * solarShare;
 		var systemEfficiency = controllerEff * C.array_derate * battery.efficiency;
-		var arrayWatts = batteryDrawWh > 0 && systemEfficiency > 0
-			? batteryDrawWh / (psh * systemEfficiency)
+		var arrayWatts = solarDrawWh > 0 && systemEfficiency > 0
+			? solarDrawWh / (psh * systemEfficiency)
 			: 0;
 		var panelWatts = Math.max(10, config.panelWatts);
 		var panelQty = arrayWatts > 0 ? Math.ceil(arrayWatts / panelWatts) : 0;
@@ -1616,7 +1741,7 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 
 		/* 4. Battery bank */
 		var bankWh = batteryDrawWh > 0
-			? (batteryDrawWh * autonomy) / (battery.dod * battery.efficiency)
+			? (batteryDrawWh * (backupHours / 24)) / (battery.dod * battery.efficiency)
 			: 0;
 		var bankAh = systemVoltage > 0 ? bankWh / systemVoltage : 0;
 		var usableKwh = (bankWh * battery.dod) / 1000;
@@ -1642,13 +1767,46 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			: 0;
 		var controllerRated = controllerA > 0 ? roundUpTo(controllerA, C.controller_sizes) : 0;
 
-		/* 7. Runtime with no sun */
-		var backupHours = batteryDrawWh > 0
+		/* 7. Runtime with no sun and no mains */
+		var runtimeHours = batteryDrawWh > 0
 			? (bankWh * battery.dod) / (batteryDrawWh / 24)
 			: 0;
 
-		/* 8. Cost and impact */
+		/* 8. Charging from mains
+		 * Where mains or a generator runs for part of the day it can refill the
+		 * bank as well as carry the load. The question is whether the window is
+		 * long enough to do it at a rate the chemistry accepts.
+		 */
+		var usableWh = bankWh * battery.dod;
+		var chargerANeeded = 0;
+		var chargerASafe = 0;
+		var chargerARated = 0;
+		var refillHours = 0;
+		var gridDailyWh = 0;
+		var solarDailyWh = dailyWh;
+
+		if (gridHours > 0) {
+			gridDailyWh = dailyWh * (1 - solarShare);
+			solarDailyWh = dailyWh * solarShare;
+		}
+
+		if (gridCharges && usableWh > 0 && systemVoltage > 0) {
+			chargerANeeded = usableWh / (gridHours * C.charger_efficiency * systemVoltage);
+			chargerASafe = bankAh * battery.max_charge_c;
+			// Never recommend a charger the batteries cannot absorb.
+			chargerARated = Math.min(
+				roundUpTo(Math.min(chargerANeeded, chargerASafe), C.controller_sizes),
+				chargerASafe
+			);
+			if (chargerARated > 0) {
+				refillHours = usableWh / (chargerARated * systemVoltage * C.charger_efficiency);
+			}
+		}
+
+		/* 9. Cost and impact */
 		var annualKwh = (dailyWh * 365) / 1000;
+		// Only the solar share displaces grid or generator energy.
+		var annualSolarKwh = (solarDailyWh * 365) / 1000;
 		var costPv = arrayInstalled * S.costPvWatt;
 		var costBattery = (bankWh / 1000) * battery.cost_kwh;
 		var costInverter = (inverterRated / 1000) * S.costInverterKw;
@@ -1659,13 +1817,20 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			dailyWh: dailyWh,
 			dailyKwh: dailyWh / 1000,
 			annualKwh: annualKwh,
+			annualSolarKwh: annualSolarKwh,
+			solarDailyWh: solarDailyWh,
+			gridDailyWh: gridDailyWh,
+			solarShare: solarShare,
 			batteryDrawWh: batteryDrawWh,
 			runningW: runningW,
 			surgeW: surgeW,
 
 			systemVoltage: systemVoltage,
 			psh: psh,
-			autonomy: autonomy,
+			backupHours: backupHours,
+			autonomy: backupHours / 24,
+			gridHours: gridHours,
+			gridCharges: gridCharges,
 
 			arrayWatts: arrayWatts,
 			arrayInstalled: arrayInstalled,
@@ -1682,7 +1847,13 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			batterySeries: series,
 			batteryStrings: strings,
 			batteryQty: batteryQty,
-			backupHours: backupHours,
+			runtimeHours: runtimeHours,
+
+			chargerANeeded: chargerANeeded,
+			chargerASafe: chargerASafe,
+			chargerARated: chargerARated,
+			chargerWatts: chargerARated * systemVoltage,
+			refillHours: refillHours,
 
 			inverterW: inverterW,
 			inverterRated: inverterRated,
@@ -1698,9 +1869,9 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			costInstall: costInstall,
 			costTotal: costHardware + costInstall,
 
-			co2SavedKg: annualKwh * C.co2_per_kwh,
-			treesEquivalent: C.co2_per_tree_year > 0 ? (annualKwh * C.co2_per_kwh) / C.co2_per_tree_year : 0,
-			generatorLitres: annualKwh * C.generator_l_per_kwh
+			co2SavedKg: annualSolarKwh * C.co2_per_kwh,
+			treesEquivalent: C.co2_per_tree_year > 0 ? (annualSolarKwh * C.co2_per_kwh) / C.co2_per_tree_year : 0,
+			generatorLitres: annualSolarKwh * C.generator_l_per_kwh
 		};
 
 		results.warnings = warnings(results, config);
@@ -1730,8 +1901,20 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		if (config.controller === 'pwm' && r.arrayInstalled > 800) {
 			list.push('PWM controllers waste 15-20% of the harvest on arrays this size. MPPT pays for itself here.');
 		}
-		if (r.autonomy < 2) {
-			list.push('Sized for ' + r.autonomy + ' day of autonomy. Add a day if you get long overcast spells and have no generator or grid backup.');
+		if (r.gridHours === 0 && r.backupHours < 24) {
+			list.push('The battery is sized for only ' + Math.round(r.backupHours) + ' hours and you have no mains or generator to fall back on. Consider a full day.');
+		}
+		// The heart of an intermittent-mains system: a short window may not be
+		// long enough to put the energy back at a safe charge rate.
+		if (r.gridCharges && r.refillHours > r.gridHours) {
+			list.push('Your ' + Math.round(r.gridHours) + ' hours of mains is not long enough to fully recharge this bank — a safe charge rate needs about '
+				+ Math.round(r.refillHours) + ' hours. Expect to start some days part-charged, so lean on solar for the difference or fit a smaller bank.');
+		}
+		if (r.gridHours > 0 && !r.gridCharges) {
+			list.push('Mains is available but is not charging the batteries, so solar has to do all the recharging. A hybrid inverter/charger would let the mains share the work.');
+		}
+		if (r.gridHours >= 20 && r.solarShare <= 0.5) {
+			list.push('With mains available nearly all day and solar covering part of the load, this is a bill-reduction system rather than a backup one. Size the battery for the outages you actually get, not for a full day.');
 		}
 		if (r.bankWh > 0 && r.arrayInstalled > 0 && r.arrayInstalled / r.bankWh < 0.1) {
 			list.push('The array is small relative to the bank, so a deeply discharged bank will take more than a day to recover.');
@@ -1791,8 +1974,8 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 					other.setAttribute('aria-checked', active ? 'true' : 'false');
 				});
 				var profile = DATA.profiles[self.profile];
-				if (profile) {
-					self.q('.spc-autonomy').value = String(profile.autonomy);
+				if (profile && !self.backupTouched) {
+					self.q('.spc-backup').value = String(profile.backup_hours);
 				}
 				self.renderLibrary();
 				self.update();
@@ -1871,6 +2054,28 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			self.update();
 		});
 
+		// Mains hours: reveal the charging option and suggest a backup target.
+		this.q('.spc-grid-hours').addEventListener('change', function () {
+			var hours = parseFloat(this.value) || 0;
+			self.q('.spc-field-gridcharge').hidden = hours <= 0;
+
+			if (!self.backupTouched) {
+				// Default to covering the outage, which is what is left of the day.
+				self.q('.spc-backup').value = self.nearestBackup(hours > 0 ? 24 - hours : 24);
+			}
+			self.update();
+		});
+
+		this.q('.spc-grid-charges').addEventListener('change', function () {
+			self.update();
+		});
+
+		// Once the visitor picks a backup figure, stop overwriting it.
+		this.q('.spc-backup').addEventListener('change', function () {
+			self.backupTouched = true;
+			self.update();
+		});
+
 		// Simultaneity slider label.
 		var slider = this.q('.spc-simultaneity');
 		slider.addEventListener('input', function () {
@@ -1879,7 +2084,7 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		});
 
 		// Every other control just recalculates.
-		['.spc-psh', '.spc-autonomy', '.spc-battery-type', '.spc-panel', '.spc-battery-unit',
+		['.spc-psh', '.spc-battery-type', '.spc-panel', '.spc-battery-unit', '.spc-solar-share',
 			'.spc-voltage', '.spc-inverter-type', '.spc-controller'].forEach(function (selector) {
 			var field = self.q(selector);
 			if (field) {
@@ -1965,7 +2170,10 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 	Calculator.prototype.config = function () {
 		return {
 			psh: parseFloat(this.q('.spc-psh').value) || 4.5,
-			autonomy: parseFloat(this.q('.spc-autonomy').value) || 1,
+			backupHours: parseFloat(this.q('.spc-backup').value) || 24,
+			gridHours: parseFloat(this.q('.spc-grid-hours').value) || 0,
+			gridCharges: this.q('.spc-grid-charges').checked,
+			solarShare: (parseFloat(this.q('.spc-solar-share').value) || 100) / 100,
 			batteryType: this.q('.spc-battery-type').value,
 			voltage: this.q('.spc-voltage').value,
 			inverterType: this.q('.spc-inverter-type').value,
@@ -1983,7 +2191,10 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		var c = this.config();
 		return {
 			psh: c.psh,
-			autonomy: c.autonomy,
+			backup_hours: c.backupHours,
+			grid_hours: c.gridHours,
+			grid_charges: c.gridCharges,
+			solar_share: c.solarShare,
 			battery_type: c.batteryType,
 			voltage: c.voltage,
 			inverter_type: c.inverterType,
@@ -1992,6 +2203,32 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			battery_unit: c.batteryUnit,
 			simultaneity: c.simultaneity
 		};
+	};
+
+	/**
+	 * Pick the smallest backup option that still covers the given outage.
+	 *
+	 * Rounds up rather than to the nearest: choosing 12 hours to cover a
+	 * 16-hour outage would leave the visitor short, which is the one direction
+	 * the suggestion must never err in.
+	 *
+	 * @param {number} hours Hours the battery needs to carry the load.
+	 * @return {string} The option value to select.
+	 */
+	Calculator.prototype.nearestBackup = function (hours) {
+		var options = Array.prototype.map.call(this.q('.spc-backup').options, function (option) {
+			return parseFloat(option.value);
+		}).sort(function (a, b) {
+			return a - b;
+		});
+
+		for (var i = 0; i < options.length; i++) {
+			if (options[i] >= hours) {
+				return String(options[i]);
+			}
+		}
+
+		return String(options[options.length - 1]);
 	};
 
 	/**
@@ -2229,7 +2466,7 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		set('.spc-r-batt-config', results.batteryStrings > 1
 			? results.batterySeries + ' in series × ' + results.batteryStrings + ' parallel'
 			: results.batterySeries + ' in series');
-		set('.spc-r-backup', num(results.backupHours, 1) + ' h at average draw');
+		set('.spc-r-runtime', num(results.runtimeHours, 1) + ' h at average draw');
 
 		set('.spc-r-inverter', num(results.inverterRated));
 		set('.spc-r-running', num(results.runningW) + ' W');
@@ -2242,7 +2479,7 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 		set('.spc-r-controller-type', results.controllerType);
 		set('.spc-r-controller-calc', num(results.controllerA, 1) + ' A');
 
-		set('.spc-r-annual', num(results.annualKwh) + ' kWh');
+		set('.spc-r-annual', num(results.annualSolarKwh) + ' kWh');
 		set('.spc-r-co2', num(results.co2SavedKg) + ' kg');
 		set('.spc-r-trees', num(results.treesEquivalent) + ' trees');
 		set('.spc-r-fuel', num(results.generatorLitres) + ' L');
@@ -2253,6 +2490,18 @@ body { margin: 0; padding: 32px 20px; font-family: -apple-system, BlinkMacSystem
 			set('.spc-r-cost-batt', money(results.costBattery));
 			set('.spc-r-cost-inv', money(results.costInverter));
 			set('.spc-r-cost-install', money(results.costInstall));
+		}
+
+		// The mains card only makes sense once mains hours are set.
+		var mainsCard = this.q('.spc-card-mains');
+		mainsCard.hidden = results.gridHours <= 0;
+		if (results.gridHours > 0) {
+			set('.spc-r-charger', num(results.chargerARated));
+			set('.spc-r-grid-hours', num(results.gridHours) + ' h/day');
+			set('.spc-r-refill', results.refillHours > 0 ? num(results.refillHours, 1) + ' h' : 'not charging');
+			set('.spc-r-charger-safe', num(results.chargerASafe) + ' A');
+			set('.spc-r-mix-solar', num(results.solarDailyWh / 1000, 2) + ' kWh/day');
+			set('.spc-r-mix-grid', num(results.gridDailyWh / 1000, 2) + ' kWh/day');
 		}
 
 		var warningBox = this.q('.spc-warnings');

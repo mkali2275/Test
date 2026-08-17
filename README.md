@@ -106,6 +106,27 @@ at startup.
 
 **Charge controller** is the array current at system voltage, plus 25%.
 
+**Intermittent mains.** Where the grid or a generator runs for only part of the
+day — the normal situation across much of the Middle East, South Asia and Africa
+— three inputs change the sizing:
+
+- *Mains hours* sets how long power is available. The battery only has to bridge
+  the outage, so a 16-hour gap needs two thirds of a day's energy rather than a
+  full day's. This is where most of the saving comes from.
+- *Mains charges the batteries* turns the grid window into charging time as well
+  as running time, which is what a hybrid inverter/charger does.
+- *Solar should supply* sets how much of the daily energy comes from solar. The
+  array is sized to that share; the rest arrives from the grid.
+
+The mains charger is then sized to refill the usable bank inside the available
+window, capped at the charge current the chemistry will accept (0.5C for lithium
+down to 0.15C for flooded lead-acid). When the window is too short to do that,
+the results say so rather than quietly assuming a full battery every morning —
+that mismatch is the single most common flaw in intermittent-supply systems.
+
+Because part of the load may now come from the grid, the environmental figures
+count solar generation rather than total consumption.
+
 The model lives in two places that must agree, because the page shows one and the
 emailed copy is produced by the other:
 

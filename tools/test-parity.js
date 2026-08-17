@@ -80,8 +80,18 @@ const FIELDS = {
 	controller_a: 'controllerA',
 	controller_rated: 'controllerRated',
 	annual_kwh: 'annualKwh',
+	annual_solar_kwh: 'annualSolarKwh',
+	solar_daily_wh: 'solarDailyWh',
+	grid_daily_wh: 'gridDailyWh',
 	co2_saved_kg: 'co2SavedKg',
-	cost_total: 'costTotal'
+	cost_total: 'costTotal',
+	runtime_hours: 'runtimeHours',
+	backup_hours: 'backupHours',
+	grid_hours: 'gridHours',
+	charger_a_needed: 'chargerANeeded',
+	charger_a_safe: 'chargerASafe',
+	charger_a_rated: 'chargerARated',
+	refill_hours: 'refillHours'
 };
 
 const TOLERANCE = 0.01; // 1% - covers float rounding between the two runtimes.
@@ -94,6 +104,10 @@ scenarios.forEach((scenario, index) => {
 	const js = engine.calculate(scenario.items, {
 		psh: scenario.config.psh,
 		autonomy: scenario.config.autonomy,
+		backupHours: scenario.config.backup_hours != null ? scenario.config.backup_hours : null,
+		gridHours: scenario.config.grid_hours || 0,
+		gridCharges: scenario.config.grid_charges !== false,
+		solarShare: scenario.config.solar_share == null ? 1 : scenario.config.solar_share,
 		batteryType: scenario.config.battery_type,
 		voltage: scenario.config.voltage,
 		inverterType: scenario.config.inverter_type,

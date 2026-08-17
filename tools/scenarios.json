@@ -1,59 +1,552 @@
 [
 	{
 		"name": "Small home essentials - lights, fan, TV, fridge",
-		"config": { "psh": 4.5, "autonomy": 1, "battery_type": "lithium", "voltage": "auto", "inverter_type": "pure_sine", "controller": "mppt", "panel_watts": 550, "battery_unit": "12v200", "simultaneity": 0.7 },
+		"config": {
+			"psh": 4.5,
+			"autonomy": 1,
+			"battery_type": "lithium",
+			"voltage": "auto",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "12v200",
+			"simultaneity": 0.7
+		},
 		"items": [
-			{ "name": "LED bulb", "watts": 10, "qty": 6, "hours": 5, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "Standing fan", "watts": 60, "qty": 2, "hours": 6, "duty": 1, "surge": 1.5, "dc": false },
-			{ "name": "LED TV 32\"", "watts": 50, "qty": 1, "hours": 5, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "Refrigerator", "watts": 100, "qty": 1, "hours": 24, "duty": 0.35, "surge": 3, "dc": false },
-			{ "name": "Wi-Fi router", "watts": 12, "qty": 1, "hours": 24, "duty": 1, "surge": 1, "dc": false }
+			{
+				"name": "LED bulb",
+				"watts": 10,
+				"qty": 6,
+				"hours": 5,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Standing fan",
+				"watts": 60,
+				"qty": 2,
+				"hours": 6,
+				"duty": 1,
+				"surge": 1.5,
+				"dc": false
+			},
+			{
+				"name": "LED TV 32\"",
+				"watts": 50,
+				"qty": 1,
+				"hours": 5,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Refrigerator",
+				"watts": 100,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.35,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Wi-Fi router",
+				"watts": 12,
+				"qty": 1,
+				"hours": 24,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			}
 		]
 	},
 	{
 		"name": "Office with AC and workstations",
-		"config": { "psh": 5.0, "autonomy": 1, "battery_type": "tubular", "voltage": "auto", "inverter_type": "pure_sine", "controller": "mppt", "panel_watts": 550, "battery_unit": "12v200", "simultaneity": 0.7 },
+		"config": {
+			"psh": 5.0,
+			"autonomy": 1,
+			"battery_type": "tubular",
+			"voltage": "auto",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "12v200",
+			"simultaneity": 0.7
+		},
 		"items": [
-			{ "name": "Desktop PC + monitor", "watts": 200, "qty": 5, "hours": 8, "duty": 1, "surge": 1.5, "dc": false },
-			{ "name": "Air conditioner 1.5HP", "watts": 1500, "qty": 2, "hours": 8, "duty": 0.8, "surge": 3, "dc": false },
-			{ "name": "LED panel light", "watts": 40, "qty": 8, "hours": 8, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "Laser printer", "watts": 500, "qty": 1, "hours": 0.5, "duty": 1, "surge": 2, "dc": false },
-			{ "name": "Network switch", "watts": 20, "qty": 1, "hours": 24, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "Water dispenser", "watts": 550, "qty": 1, "hours": 8, "duty": 0.4, "surge": 2, "dc": false }
+			{
+				"name": "Desktop PC + monitor",
+				"watts": 200,
+				"qty": 5,
+				"hours": 8,
+				"duty": 1,
+				"surge": 1.5,
+				"dc": false
+			},
+			{
+				"name": "Air conditioner 1.5HP",
+				"watts": 1500,
+				"qty": 2,
+				"hours": 8,
+				"duty": 0.8,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "LED panel light",
+				"watts": 40,
+				"qty": 8,
+				"hours": 8,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Laser printer",
+				"watts": 500,
+				"qty": 1,
+				"hours": 0.5,
+				"duty": 1,
+				"surge": 2,
+				"dc": false
+			},
+			{
+				"name": "Network switch",
+				"watts": 20,
+				"qty": 1,
+				"hours": 24,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Water dispenser",
+				"watts": 550,
+				"qty": 1,
+				"hours": 8,
+				"duty": 0.4,
+				"surge": 2,
+				"dc": false
+			}
 		]
 	},
 	{
 		"name": "Van build - mixed DC and AC loads",
-		"config": { "psh": 4.2, "autonomy": 2, "battery_type": "lithium", "voltage": "12", "inverter_type": "pure_sine", "controller": "mppt", "panel_watts": 200, "battery_unit": "12v100", "simultaneity": 0.7 },
+		"config": {
+			"psh": 4.2,
+			"autonomy": 2,
+			"battery_type": "lithium",
+			"voltage": "12",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 200,
+			"battery_unit": "12v100",
+			"simultaneity": 0.7
+		},
 		"items": [
-			{ "name": "12V compressor fridge", "watts": 45, "qty": 1, "hours": 24, "duty": 0.4, "surge": 3, "dc": true },
-			{ "name": "12V LED strip", "watts": 5, "qty": 4, "hours": 5, "duty": 1, "surge": 1, "dc": true },
-			{ "name": "Roof vent fan", "watts": 30, "qty": 1, "hours": 6, "duty": 1, "surge": 1.5, "dc": true },
-			{ "name": "Laptop", "watts": 65, "qty": 1, "hours": 4, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "Phone charger", "watts": 8, "qty": 2, "hours": 3, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "12V water pump", "watts": 50, "qty": 1, "hours": 0.5, "duty": 1, "surge": 2, "dc": true }
+			{
+				"name": "12V compressor fridge",
+				"watts": 45,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.4,
+				"surge": 3,
+				"dc": true
+			},
+			{
+				"name": "12V LED strip",
+				"watts": 5,
+				"qty": 4,
+				"hours": 5,
+				"duty": 1,
+				"surge": 1,
+				"dc": true
+			},
+			{
+				"name": "Roof vent fan",
+				"watts": 30,
+				"qty": 1,
+				"hours": 6,
+				"duty": 1,
+				"surge": 1.5,
+				"dc": true
+			},
+			{
+				"name": "Laptop",
+				"watts": 65,
+				"qty": 1,
+				"hours": 4,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Phone charger",
+				"watts": 8,
+				"qty": 2,
+				"hours": 3,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "12V water pump",
+				"watts": 50,
+				"qty": 1,
+				"hours": 0.5,
+				"duty": 1,
+				"surge": 2,
+				"dc": true
+			}
 		]
 	},
 	{
 		"name": "PWM + flooded lead-acid, poor sun",
-		"config": { "psh": 2.6, "autonomy": 3, "battery_type": "flooded", "voltage": "24", "inverter_type": "modified_sine", "controller": "pwm", "panel_watts": 300, "battery_unit": "12v220", "simultaneity": 0.5 },
+		"config": {
+			"psh": 2.6,
+			"autonomy": 3,
+			"battery_type": "flooded",
+			"voltage": "24",
+			"inverter_type": "modified_sine",
+			"controller": "pwm",
+			"panel_watts": 300,
+			"battery_unit": "12v220",
+			"simultaneity": 0.5
+		},
 		"items": [
-			{ "name": "LED bulb", "watts": 10, "qty": 10, "hours": 6, "duty": 1, "surge": 1, "dc": false },
-			{ "name": "Chest freezer", "watts": 150, "qty": 1, "hours": 24, "duty": 0.4, "surge": 3, "dc": false },
-			{ "name": "Washing machine", "watts": 500, "qty": 1, "hours": 1, "duty": 1, "surge": 3, "dc": false }
+			{
+				"name": "LED bulb",
+				"watts": 10,
+				"qty": 10,
+				"hours": 6,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Chest freezer",
+				"watts": 150,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.4,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Washing machine",
+				"watts": 500,
+				"qty": 1,
+				"hours": 1,
+				"duty": 1,
+				"surge": 3,
+				"dc": false
+			}
 		]
 	},
 	{
 		"name": "Empty load list",
-		"config": { "psh": 4.5, "autonomy": 1, "battery_type": "lithium", "voltage": "auto", "inverter_type": "pure_sine", "controller": "mppt", "panel_watts": 550, "battery_unit": "12v200", "simultaneity": 0.7 },
+		"config": {
+			"psh": 4.5,
+			"autonomy": 1,
+			"battery_type": "lithium",
+			"voltage": "auto",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "12v200",
+			"simultaneity": 0.7
+		},
 		"items": []
 	},
 	{
 		"name": "Single high-surge motor at 48V",
-		"config": { "psh": 5.8, "autonomy": 1, "battery_type": "lithium", "voltage": "48", "inverter_type": "pure_sine", "controller": "mppt", "panel_watts": 550, "battery_unit": "48v100", "simultaneity": 1.0 },
+		"config": {
+			"psh": 5.8,
+			"autonomy": 1,
+			"battery_type": "lithium",
+			"voltage": "48",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "48v100",
+			"simultaneity": 1.0
+		},
 		"items": [
-			{ "name": "Water pump 0.5HP", "watts": 375, "qty": 1, "hours": 2, "duty": 1, "surge": 3, "dc": false },
-			{ "name": "Air conditioner 1.5HP", "watts": 1500, "qty": 3, "hours": 10, "duty": 0.8, "surge": 3, "dc": false }
+			{
+				"name": "Water pump 0.5HP",
+				"watts": 375,
+				"qty": 1,
+				"hours": 2,
+				"duty": 1,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Air conditioner 1.5HP",
+				"watts": 1500,
+				"qty": 3,
+				"hours": 10,
+				"duty": 0.8,
+				"surge": 3,
+				"dc": false
+			}
+		]
+	},
+	{
+		"name": "Middle East home, 8 hours of mains a day, mains charges",
+		"config": {
+			"psh": 5.7,
+			"backup_hours": 16,
+			"grid_hours": 8,
+			"grid_charges": true,
+			"solar_share": 1.0,
+			"battery_type": "lithium",
+			"voltage": "auto",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "48v100",
+			"simultaneity": 0.7
+		},
+		"items": [
+			{
+				"name": "LED bulb",
+				"watts": 10,
+				"qty": 10,
+				"hours": 6,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Ceiling fan",
+				"watts": 75,
+				"qty": 3,
+				"hours": 10,
+				"duty": 1,
+				"surge": 1.5,
+				"dc": false
+			},
+			{
+				"name": "Refrigerator",
+				"watts": 200,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.4,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Air conditioner 1.5HP",
+				"watts": 1500,
+				"qty": 2,
+				"hours": 8,
+				"duty": 0.8,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "TV",
+				"watts": 120,
+				"qty": 1,
+				"hours": 5,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Wi-Fi router",
+				"watts": 12,
+				"qty": 1,
+				"hours": 24,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			}
+		]
+	},
+	{
+		"name": "Only 4 hours of mains, solar carries most of it",
+		"config": {
+			"psh": 5.5,
+			"backup_hours": 20,
+			"grid_hours": 4,
+			"grid_charges": true,
+			"solar_share": 0.75,
+			"battery_type": "tubular",
+			"voltage": "48",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "12v220",
+			"simultaneity": 0.7
+		},
+		"items": [
+			{
+				"name": "LED bulb",
+				"watts": 10,
+				"qty": 8,
+				"hours": 6,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Chest freezer",
+				"watts": 150,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.4,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Water pump",
+				"watts": 375,
+				"qty": 1,
+				"hours": 2,
+				"duty": 1,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Air conditioner 1HP inverter",
+				"watts": 750,
+				"qty": 1,
+				"hours": 8,
+				"duty": 0.7,
+				"surge": 1.5,
+				"dc": false
+			}
+		]
+	},
+	{
+		"name": "Mains nearly all day, solar just to cut the bill",
+		"config": {
+			"psh": 5.0,
+			"backup_hours": 4,
+			"grid_hours": 20,
+			"grid_charges": true,
+			"solar_share": 0.25,
+			"battery_type": "lithium",
+			"voltage": "auto",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "48v100",
+			"simultaneity": 0.7
+		},
+		"items": [
+			{
+				"name": "Desktop PC + monitor",
+				"watts": 200,
+				"qty": 4,
+				"hours": 8,
+				"duty": 1,
+				"surge": 1.5,
+				"dc": false
+			},
+			{
+				"name": "Office AC",
+				"watts": 1500,
+				"qty": 1,
+				"hours": 8,
+				"duty": 0.8,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "LED panel light",
+				"watts": 40,
+				"qty": 6,
+				"hours": 9,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			}
+		]
+	},
+	{
+		"name": "Mains available but not wired to charge",
+		"config": {
+			"psh": 4.5,
+			"backup_hours": 12,
+			"grid_hours": 12,
+			"grid_charges": false,
+			"solar_share": 1.0,
+			"battery_type": "agm",
+			"voltage": "24",
+			"inverter_type": "pure_sine",
+			"controller": "pwm",
+			"panel_watts": 330,
+			"battery_unit": "12v200",
+			"simultaneity": 0.7
+		},
+		"items": [
+			{
+				"name": "LED bulb",
+				"watts": 10,
+				"qty": 6,
+				"hours": 5,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Refrigerator",
+				"watts": 100,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.35,
+				"surge": 3,
+				"dc": false
+			}
+		]
+	},
+	{
+		"name": "Only 2 hours of mains onto flooded lead-acid (cannot refill in time)",
+		"config": {
+			"psh": 4.5,
+			"backup_hours": 24,
+			"grid_hours": 2,
+			"grid_charges": true,
+			"solar_share": 1.0,
+			"battery_type": "flooded",
+			"voltage": "48",
+			"inverter_type": "pure_sine",
+			"controller": "mppt",
+			"panel_watts": 550,
+			"battery_unit": "12v220",
+			"simultaneity": 0.7
+		},
+		"items": [
+			{
+				"name": "LED bulb",
+				"watts": 10,
+				"qty": 10,
+				"hours": 6,
+				"duty": 1,
+				"surge": 1,
+				"dc": false
+			},
+			{
+				"name": "Refrigerator",
+				"watts": 200,
+				"qty": 1,
+				"hours": 24,
+				"duty": 0.4,
+				"surge": 3,
+				"dc": false
+			},
+			{
+				"name": "Ceiling fan",
+				"watts": 75,
+				"qty": 4,
+				"hours": 12,
+				"duty": 1,
+				"surge": 1.5,
+				"dc": false
+			}
 		]
 	}
 ]

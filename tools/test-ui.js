@@ -150,7 +150,7 @@ function check(label, condition, detail) {
 	await page.click('.spc-profile[data-profile="travel"]');
 	await page.waitForTimeout(80);
 	check('travel profile is active', await page.locator('.spc-profile[data-profile="travel"].is-active').count() === 1);
-	check('travel profile sets 2 days autonomy', await page.inputValue('.spc-autonomy') === '2');
+	check('travel profile asks for 48h of battery', await page.inputValue('.spc-backup') === '48');
 	const travelChips = await page.locator('.spc-chip', { hasText: '12V compressor fridge' }).count();
 	check('travel library shows RV appliances', travelChips === 1);
 
@@ -178,24 +178,98 @@ function check(label, condition, detail) {
 	const cloudyPanels = parseInt(await page.textContent('.spc-r-panel-qty'), 10);
 	check('poor sun needs more panels', cloudyPanels > sunnyPanels, `${sunnyPanels} -> ${cloudyPanels}`);
 
-	/* --- more autonomy means more batteries --- */
-	await page.selectOption('.spc-autonomy', '1');
+	/* --- more backup means more batteries --- */
+	await page.selectOption('.spc-backup', '24');
 	await page.waitForTimeout(80);
 	const oneDay = parseInt(await page.textContent('.spc-r-batt-qty'), 10);
-	await page.selectOption('.spc-autonomy', '3');
+	await page.selectOption('.spc-backup', '72');
 	await page.waitForTimeout(80);
 	const threeDay = parseInt(await page.textContent('.spc-r-batt-qty'), 10);
 	check('3 days of backup needs more batteries', threeDay > oneDay, `${oneDay} -> ${threeDay}`);
 
+	/* --- intermittent mains: the case across much of the Middle East ---
+	 * On a fresh page, so the backup target is still untouched and the
+	 * auto-suggest is allowed to move it.
+	 */
+	await page.goto(PREVIEW);
+	await page.waitForSelector('.spc-body:not([hidden])');
+	for (const name of ['LED bulb', 'Refrigerator (150-200L)', 'Ceiling fan']) {
+		await page.locator('.spc-chip', { hasText: name }).first().click();
+	}
+	await page.waitForTimeout(120);
+
+	const bank = async () => parseFloat((await page.textContent('.spc-r-bank-kwh')).replace(/[^\d.]/g, ''));
+	const offGridBank = await bank();
+	check('mains card hidden while fully off grid', !(await page.isVisible('.spc-card-mains')));
+	check('off grid asks for a full day of battery', await page.inputValue('.spc-backup') === '24');
+
+	await page.selectOption('.spc-grid-hours', '8');
+	await page.waitForTimeout(120);
+	check('choosing mains hours reveals the charging option', await page.isVisible('.spc-field-gridcharge'));
+	check('choosing mains hours reveals the mains card', await page.isVisible('.spc-card-mains'));
+	check('backup target drops to cover the outage', await page.inputValue('.spc-backup') === '16',
+		await page.inputValue('.spc-backup'));
+
+	const hybridBank = await bank();
+	check('8 hours of mains shrinks the battery bank', hybridBank < offGridBank,
+		`${offGridBank} kWh -> ${hybridBank} kWh`);
+
+	const chargerA = parseFloat(await page.textContent('.spc-r-charger'));
+	check('a mains charger is sized', chargerA > 0, `${chargerA} A`);
+	const refill = await page.textContent('.spc-r-refill');
+	check('refill time is reported', /\d/.test(refill), refill);
+
+	/* --- a manual backup choice is not overwritten afterwards --- */
+	await page.selectOption('.spc-backup', '12');
+	await page.selectOption('.spc-grid-hours', '4');
+	await page.waitForTimeout(100);
+	check('a backup choice the visitor made is respected', await page.inputValue('.spc-backup') === '12',
+		await page.inputValue('.spc-backup'));
+
+	/* --- turning off mains charging warns and drops the charger --- */
+	await page.uncheck('.spc-grid-charges');
+	await page.waitForTimeout(100);
+	const noCharge = await page.textContent('.spc-r-refill');
+	check('no charger when mains does not charge', noCharge.trim() === 'not charging', noCharge);
+	const warnText = await page.textContent('.spc-warnings');
+	check('warns that solar must do all the recharging', warnText.includes('not charging the batteries'));
+	await page.check('.spc-grid-charges');
+	await page.waitForTimeout(80);
+
+	/* --- solar share shrinks the array, and the impact figures follow --- */
+	const arrayMin = async () => parseFloat((await page.textContent('.spc-r-array-min')).replace(/[^\d.]/g, ''));
+	await page.selectOption('.spc-solar-share', '100');
+	await page.waitForTimeout(80);
+	const fullArray = await arrayMin();
+	const fullCo2 = parseFloat((await page.textContent('.spc-r-co2')).replace(/[^\d.]/g, ''));
+	await page.selectOption('.spc-solar-share', '50');
+	await page.waitForTimeout(80);
+	const halfArray = await arrayMin();
+	const halfCo2 = parseFloat((await page.textContent('.spc-r-co2')).replace(/[^\d.]/g, ''));
+	check('asking solar for half the load halves the array',
+		Math.abs(halfArray - fullArray / 2) < fullArray * 0.02,
+		`${fullArray} W -> ${halfArray} W`);
+	check('CO2 credit follows solar generation, not consumption', halfCo2 < fullCo2,
+		`${fullCo2} -> ${halfCo2} kg`);
+	const mixGrid = await page.textContent('.spc-r-mix-grid');
+	check('energy mix shows a mains contribution', parseFloat(mixGrid) > 0, mixGrid);
+
+	await page.selectOption('.spc-solar-share', '100');
+	await page.selectOption('.spc-grid-hours', '0');
+	await page.waitForTimeout(100);
+	check('going back off grid hides the mains card', !(await page.isVisible('.spc-card-mains')));
+
 	/* --- lead acid needs more nameplate capacity than lithium --- */
+	// Compare nameplate energy, not amp-hours: the two chemistries can land on
+	// different system voltages, which makes Ah figures incomparable.
 	await page.selectOption('.spc-battery-type', 'lithium');
 	await page.waitForTimeout(80);
-	const lithiumAh = await page.textContent('.spc-r-bank-ah');
+	const lithiumKwh = await bank();
 	await page.selectOption('.spc-battery-type', 'flooded');
 	await page.waitForTimeout(80);
-	const floodedAh = await page.textContent('.spc-r-bank-ah');
-	const toNum = (text) => parseFloat(text.replace(/[^\d.]/g, ''));
-	check('lead-acid bank is larger than lithium', toNum(floodedAh) > toNum(lithiumAh), `${lithiumAh} vs ${floodedAh}`);
+	const floodedKwh = await bank();
+	check('lead-acid bank is larger than lithium', floodedKwh > lithiumKwh,
+		`${lithiumKwh} kWh vs ${floodedKwh} kWh`);
 
 	/* --- removing rows --- */
 	const rowsBefore = await page.locator('.spc-table tbody tr').count();
@@ -205,7 +279,7 @@ function check(label, condition, detail) {
 	check('remove button drops the row', rowsAfter === rowsBefore - 1, `${rowsBefore} -> ${rowsAfter}`);
 
 	// Make sure there is something to clear, then clear it.
-	await page.locator('.spc-chip', { hasText: 'Monitor 24"' }).first().click();
+	await page.locator('.spc-chip', { hasText: 'LED TV 32"' }).first().click();
 	await page.waitForTimeout(80);
 	await page.click('.spc-clear');
 	await page.waitForTimeout(80);

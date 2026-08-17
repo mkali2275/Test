@@ -4,7 +4,7 @@ Tags: solar, calculator, off-grid, battery, energy
 Requires at least: 5.6
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,7 @@ controller current. Results update as they type.
 **What it works out**
 
 * Daily energy use, accounting for duty cycles on thermostat-controlled loads
+* The mains battery charger needed to refill the bank inside a limited grid window
 * Solar array size for their region's peak sun hours, after controller and array losses
 * Battery bank sized on usable capacity, not nameplate, for the chosen chemistry and days of backup
 * System voltage (12V / 24V / 48V) chosen from current draw
@@ -32,6 +33,7 @@ controller current. Results update as they type.
 
 **Also included**
 
+* Intermittent mains support: size for the outage, not a whole day, and check that a short grid window can actually refill the bank
 * Over 60 appliances across home, office and travel, plus a custom appliance form
 * 14 regional presets for peak sun hours, or a manual figure
 * Lithium, AGM, tubular and flooded lead-acid battery models
@@ -96,6 +98,13 @@ feature, and even then results are emailed rather than stored.
 1. The calculator with a home load list and its sizing results.
 
 == Changelog ==
+
+= 1.1.0 =
+* Added support for intermittent mains power, the normal situation across much of the Middle East, South Asia and Africa. Say how many hours of grid or generator you get, whether it also charges the batteries, and how much of your energy you want from solar. The battery is then sized for the outage rather than a whole day, and the array only covers the solar share.
+* New "Charging from mains" result card: the charger current you need, how long a full recharge takes, the most the chosen chemistry will safely accept, and the daily split between solar and mains.
+* Warns when the mains window is too short to refill the bank at a safe charge rate — the trap that catches most intermittent-supply systems.
+* Battery backup is now chosen in hours rather than days, so a 16-hour outage can be sized directly.
+* Environmental figures now count solar generation rather than total consumption, so they stay honest when part of the load comes from the grid.
 
 = 1.0.1 =
 * Fixed unreadable form text on themes that do not follow the device's dark mode setting. The palette now follows the page's own background colour instead of the visitor's device preference, and the calculator's own text and background colours are stated together so a theme cannot set one without the other.

@@ -525,6 +525,26 @@
 	padding-bottom: 8px;
 }
 
+.spc-check-block {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	font-size: 0.94rem;
+}
+
+.spc-check-block input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	accent-color: var(--spc-accent);
+	flex: 0 0 auto;
+}
+
+.spc-card-mains {
+	border-color: var(--spc-accent);
+}
+
 .spc-custom-error {
 	margin: 10px 0 0;
 	color: #dc2626;

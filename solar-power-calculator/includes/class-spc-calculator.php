@@ -29,7 +29,11 @@ class SPC_Calculator {
 			$config,
 			array(
 				'psh'           => 4.5,
-				'autonomy'      => 1,
+				'autonomy'      => 1,     // Days. Superseded by backup_hours.
+				'backup_hours'  => null,  // Hours the battery alone must carry the load.
+				'grid_hours'    => 0,     // Hours of mains or generator per day.
+				'grid_charges'  => true,  // Does that mains also charge the bank?
+				'solar_share'   => 1.0,   // Share of the daily load solar supplies.
 				'battery_type'  => 'lithium',
 				'voltage'       => 'auto',
 				'inverter_type' => 'pure_sine',
@@ -49,8 +53,18 @@ class SPC_Calculator {
 			? $const['controller_efficiency'][ $config['controller'] ]
 			: $const['controller_efficiency']['mppt'];
 
-		$psh      = max( 0.5, (float) $config['psh'] );
-		$autonomy = max( 0.5, (float) $config['autonomy'] );
+		$psh = max( 0.5, (float) $config['psh'] );
+
+		// Backup is expressed in hours so intermittent-mains setups can ask for
+		// "cover the 10-hour outage" rather than a whole day. The older
+		// autonomy-in-days input still works: one day is twenty-four hours.
+		$backup_hours = null !== $config['backup_hours']
+			? min( 168.0, max( 1.0, (float) $config['backup_hours'] ) )
+			: max( 0.5, (float) $config['autonomy'] ) * 24;
+
+		$grid_hours   = min( 24.0, max( 0.0, (float) $config['grid_hours'] ) );
+		$grid_charges = $grid_hours > 0 && ! empty( $config['grid_charges'] );
+		$solar_share  = min( 1.0, max( 0.05, (float) $config['solar_share'] ) );
 
 		/* ------------------------------------------------- 1. Daily energy */
 
@@ -108,13 +122,15 @@ class SPC_Calculator {
 
 		/* -------------------------------------------------- 2. Solar array */
 
-		// Everything the array must replace each day, grossed up for controller,
-		// array and battery round-trip losses. Independent of system voltage,
-		// so it can be worked out before the voltage is chosen.
+		// The array only has to cover the share of the load the owner wants from
+		// solar; where mains is available for part of the day it can carry the
+		// rest. Grossed up for controller, array and battery round-trip losses.
+		// Independent of system voltage, so it is worked out before the voltage.
+		$solar_draw_wh     = $battery_draw_wh * $solar_share;
 		$system_efficiency = $controller_eff * $const['array_derate'] * $battery['efficiency'];
 		$array_watts       = 0.0;
-		if ( $battery_draw_wh > 0 && $system_efficiency > 0 ) {
-			$array_watts = $battery_draw_wh / ( $psh * $system_efficiency );
+		if ( $solar_draw_wh > 0 && $system_efficiency > 0 ) {
+			$array_watts = $solar_draw_wh / ( $psh * $system_efficiency );
 		}
 
 		$panel_watts     = max( 10, (float) $config['panel_watts'] );
@@ -141,10 +157,12 @@ class SPC_Calculator {
 		/* ----------------------------------------------- 4. Battery bank */
 
 		// Oversize for depth of discharge and round-trip losses so the usable
-		// capacity — not the nameplate — covers the autonomy period.
+		// capacity — not the nameplate — carries the load for the backup period.
+		// The load is taken as its daily average, so a 10-hour outage needs
+		// ten twenty-fourths of a day's energy.
 		$bank_wh = 0.0;
 		if ( $battery_draw_wh > 0 ) {
-			$bank_wh = ( $battery_draw_wh * $autonomy ) / ( $battery['dod'] * $battery['efficiency'] );
+			$bank_wh = ( $battery_draw_wh * ( $backup_hours / 24 ) ) / ( $battery['dod'] * $battery['efficiency'] );
 		}
 		$bank_ah    = $system_voltage > 0 ? $bank_wh / $system_voltage : 0;
 		$usable_kwh = $bank_wh * $battery['dod'] / 1000;
@@ -176,16 +194,54 @@ class SPC_Calculator {
 
 		/* ------------------------------------------------------- 7. Runtime */
 
-		// How long a full bank carries the load with no sun at all.
-		$backup_hours = 0.0;
+		// How long a full bank carries the load with no sun and no mains. Named
+		// apart from $backup_hours, which is the target the owner asked for.
+		$runtime_hours = 0.0;
 		if ( $battery_draw_wh > 0 ) {
-			$backup_hours = ( $bank_wh * $battery['dod'] ) / ( $battery_draw_wh / 24 );
+			$runtime_hours = ( $bank_wh * $battery['dod'] ) / ( $battery_draw_wh / 24 );
 		}
 
-		/* -------------------------------------------- 8. Cost and impact */
+		/* ------------------------------------------- 8. Charging from mains */
+
+		// Where mains or a generator is available for part of the day, it can
+		// refill the bank as well as run the load. The question is whether the
+		// window is long enough to do it at a charge rate the chemistry accepts.
+		$usable_wh          = $bank_wh * $battery['dod'];
+		$charger_a_needed   = 0.0; // To refill inside the mains window.
+		$charger_a_safe     = 0.0; // Most the chemistry will take.
+		$charger_a_rated    = 0.0; // What to actually buy.
+		$refill_hours       = 0.0; // How long a full refill really takes.
+		$grid_daily_wh      = 0.0;
+		$solar_daily_wh     = $daily_wh;
+
+		if ( $grid_hours > 0 ) {
+			$grid_daily_wh  = $daily_wh * ( 1 - $solar_share );
+			$solar_daily_wh = $daily_wh * $solar_share;
+		}
+
+		if ( $grid_charges && $usable_wh > 0 && $system_voltage > 0 ) {
+			$charger_a_needed = $usable_wh / ( $grid_hours * $const['charger_efficiency'] * $system_voltage );
+			$charger_a_safe   = $bank_ah * (float) $battery['max_charge_c'];
+
+			// Never recommend a charger the batteries cannot absorb.
+			$charger_a_rated = self::round_up_to(
+				min( $charger_a_needed, $charger_a_safe ),
+				$const['controller_sizes']
+			);
+			$charger_a_rated = min( $charger_a_rated, $charger_a_safe );
+
+			if ( $charger_a_rated > 0 ) {
+				$refill_hours = $usable_wh / ( $charger_a_rated * $system_voltage * $const['charger_efficiency'] );
+			}
+		}
+
+		/* -------------------------------------------- 9. Cost and impact */
 
 		$settings   = SPC_Data::settings();
 		$annual_kwh = $daily_wh * 365 / 1000;
+		// Only the solar-supplied share displaces grid or generator energy, so
+		// only that share counts towards the environmental figures.
+		$annual_solar_kwh = $solar_daily_wh * 365 / 1000;
 
 		$cost_pv         = $array_installed * (float) $settings['cost_pv_watt'];
 		$cost_battery    = ( $bank_wh / 1000 ) * (float) $battery['cost_kwh'];
@@ -198,6 +254,10 @@ class SPC_Calculator {
 			'daily_kwh'         => $daily_wh / 1000,
 			'monthly_kwh'       => $daily_wh * 30 / 1000,
 			'annual_kwh'        => $annual_kwh,
+			'annual_solar_kwh'  => $annual_solar_kwh,
+			'solar_daily_wh'    => $solar_daily_wh,
+			'grid_daily_wh'     => $grid_daily_wh,
+			'solar_share'       => $solar_share,
 			'ac_wh'             => $ac_wh,
 			'dc_wh'             => $dc_wh,
 			'battery_draw_wh'   => $battery_draw_wh,
@@ -207,7 +267,10 @@ class SPC_Calculator {
 
 			'system_voltage'    => $system_voltage,
 			'psh'               => $psh,
-			'autonomy'          => $autonomy,
+			'backup_hours'      => $backup_hours,
+			'autonomy'          => $backup_hours / 24,
+			'grid_hours'        => $grid_hours,
+			'grid_charges'      => $grid_charges,
 
 			'array_watts'       => $array_watts,
 			'array_installed'   => $array_installed,
@@ -225,7 +288,13 @@ class SPC_Calculator {
 			'battery_series'    => $series,
 			'battery_strings'   => $strings,
 			'battery_qty'       => $unit_qty,
-			'backup_hours'      => $backup_hours,
+			'runtime_hours'     => $runtime_hours,
+
+			'charger_a_needed'  => $charger_a_needed,
+			'charger_a_safe'    => $charger_a_safe,
+			'charger_a_rated'   => $charger_a_rated,
+			'charger_watts'     => $charger_a_rated * $system_voltage,
+			'refill_hours'      => $refill_hours,
 
 			'inverter_w'        => $inverter_w,
 			'inverter_rated'    => $inverter_rated,
@@ -241,9 +310,9 @@ class SPC_Calculator {
 			'cost_install'      => $cost_install,
 			'cost_total'        => $cost_hardware + $cost_install,
 
-			'co2_saved_kg'      => $annual_kwh * $const['co2_per_kwh'],
-			'trees_equivalent'  => $const['co2_per_tree_year'] > 0 ? ( $annual_kwh * $const['co2_per_kwh'] ) / $const['co2_per_tree_year'] : 0,
-			'generator_litres'  => $annual_kwh * $const['generator_l_per_kwh'],
+			'co2_saved_kg'      => $annual_solar_kwh * $const['co2_per_kwh'],
+			'trees_equivalent'  => $const['co2_per_tree_year'] > 0 ? ( $annual_solar_kwh * $const['co2_per_kwh'] ) / $const['co2_per_tree_year'] : 0,
+			'generator_litres'  => $annual_solar_kwh * $const['generator_l_per_kwh'],
 
 			'breakdown'         => $breakdown,
 			'warnings'          => array(),
@@ -284,8 +353,23 @@ class SPC_Calculator {
 			$warnings[] = 'PWM controllers waste 15-20% of the harvest on arrays this size. MPPT pays for itself here.';
 		}
 
-		if ( $r['autonomy'] < 2 ) {
-			$warnings[] = 'Sized for ' . $r['autonomy'] . ' day of autonomy. Add a day if you get long overcast spells and have no generator or grid backup.';
+		if ( 0 === (int) $r['grid_hours'] && $r['backup_hours'] < 24 ) {
+			$warnings[] = 'The battery is sized for only ' . round( $r['backup_hours'] ) . ' hours and you have no mains or generator to fall back on. Consider a full day.';
+		}
+
+		// The heart of an intermittent-mains system: a short window may simply
+		// not be long enough to put the energy back at a safe charge rate.
+		if ( $r['grid_charges'] && $r['refill_hours'] > $r['grid_hours'] ) {
+			$warnings[] = 'Your ' . round( $r['grid_hours'] ) . ' hours of mains is not long enough to fully recharge this bank — a safe charge rate needs about '
+				. round( $r['refill_hours'] ) . ' hours. Expect to start some days part-charged, so lean on solar for the difference or fit a smaller bank.';
+		}
+
+		if ( $r['grid_hours'] > 0 && ! $r['grid_charges'] ) {
+			$warnings[] = 'Mains is available but is not charging the batteries, so solar has to do all the recharging. A hybrid inverter/charger would let the mains share the work.';
+		}
+
+		if ( $r['grid_hours'] >= 20 && $r['solar_share'] <= 0.5 ) {
+			$warnings[] = 'With mains available nearly all day and solar covering part of the load, this is a bill-reduction system rather than a backup one. Size the battery for the outages you actually get, not for a full day.';
 		}
 
 		if ( $r['bank_kwh'] > 0 && $r['array_installed'] > 0 ) {
