@@ -65,8 +65,50 @@ Unvalidated — these are options, not plans. Yours to keep, cut or reorder.
 ### Likely worth it
 
 - **Arabic and RTL support.** If Middle East visitors matter, the interface being
-  English-only and left-to-right is the biggest barrier in the whole tool.
-  Bigger job than it sounds, but nothing else unlocks as many people.
+  English-only and left-to-right is the biggest barrier in the whole tool. See
+  the breakdown below — it splits into a paid part and a free part.
+
+  <details>
+  <summary>How it would work, and what it would cost</summary>
+
+  **Two separate jobs, and they are not equally hard.**
+
+  *Right-to-left layout* is the real engineering. The interface has to mirror:
+  table columns reverse, dropdown arrows flip sides, spacing written as "left"
+  becomes "start", and figures with units (`3,300 W`) need care because they stay
+  left-to-right inside right-to-left text.
+
+  *The words* are about 60 appliance names, ~80 interface labels, the warning
+  messages, and the 2,500-word help guide.
+
+  **The cost-saving split.** WordPress has a built-in translation system. Make
+  the plugin translation-ready — every string wrapped so it can be swapped — and
+  the Arabic can then be typed in by a person using Loco Translate, free, inside
+  WordPress admin. Wording can be corrected later at no cost.
+
+  | Job | Who | Cost |
+  |---|---|---|
+  | RTL layout + make text translatable | Claude | The main spend |
+  | Write the Arabic | A native speaker, in Loco Translate | Free, better quality |
+  | Fix wording later | Us, anytime | Free |
+
+  **Why not have Claude translate it.** Technical terms differ by region — the
+  everyday word for *inverter* or *charge controller* is not the same in Gulf,
+  Levant and Egyptian usage, and "peak sun hours" has no natural everyday
+  equivalent. On a public tool meant to build trust, translation that reads
+  slightly foreign undermines the whole thing.
+
+  **Scale.** Bigger than the intermittent-mains feature, smaller than building
+  the original calculator. Best split across two or three sessions: RTL layout
+  first (working, still in English), then make the text translatable, then hand
+  over for translation.
+
+  **Check first.** Look at visitors by country in Google Analytics or Jetpack
+  Stats after a month or two. Mostly English-speaking or West African traffic
+  means the money is better spent elsewhere. A third from the Gulf or Levant
+  makes this the highest-value item on this list.
+
+  </details>
 - **Run heavy loads while the sun is up.** The calculator currently averages the
   load across the day. Telling someone "shift your washing and ironing to
   daylight and you need two fewer batteries" is genuinely actionable advice.
